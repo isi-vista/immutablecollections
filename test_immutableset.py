@@ -80,6 +80,9 @@ class TestImmutableSet(TestCase):
         # which is mutable
         self.assertTrue(isinstance(set1, Set))
 
+    def test_slots(self):
+        self.assertFalse(hasattr(ImmutableSet.of([1, 2, 3]), '__dict__'))
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings

@@ -82,6 +82,9 @@ class TestImmutableDict(TestCase):
         dict1 = ImmutableDict.of({'a': 1})
         self.assertTrue(isinstance(dict1, Mapping))
 
+    def test_slots(self):
+        self.assertFalse(hasattr(ImmutableDict.of({'a': 1}), '__dict__'))
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings
