@@ -67,6 +67,12 @@ class TestImmutableList(TestCase):
     def test_slots(self):
         self.assertFalse(hasattr(ImmutableList.of([1, 2, 3]), '__dict__'))
 
+    def test_repr(self):
+        self.assertEqual("i[1, 2, 3]", repr(ImmutableList.of([1, 2, 3])))
+
+    def test_repr(self):
+        self.assertEqual("[1, 2, 3]", str(ImmutableList.of([1, 2, 3])))
+
     @staticmethod
     def type_annotations() -> str:
         # Just to check for mypy warnings

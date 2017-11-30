@@ -5,7 +5,6 @@ from flexnlp.util.immutablecollections import ImmutableSet
 
 
 class TestImmutableSet(TestCase):
-
     def test_empty_set(self):
         empty = ImmutableSet.empty()
         self.assertEqual(set(empty), set())
@@ -82,6 +81,29 @@ class TestImmutableSet(TestCase):
 
     def test_slots(self):
         self.assertFalse(hasattr(ImmutableSet.of([1, 2, 3]), '__dict__'))
+
+    def test_repr(self):
+        self.assertEqual("i{1, 2, 3}", repr(ImmutableSet.of([1, 2, 3, 2])))
+
+    def test_str(self):
+        self.assertEqual("{1, 2, 3}", str(ImmutableSet.of([1, 2, 3, 2])))
+
+    def test_type_testing(self):
+        ImmutableSet.of([1, 2, 3], check_top_type_matches=int)
+        with self.assertRaises(TypeError):
+            ImmutableSet.of([1, 2, "three"], check_top_type_matches=int)
+        string_set = ImmutableSet.of(["one", "two", "three"], check_top_type_matches=str)
+        # this is fine
+        ImmutableSet.of(string_set, check_top_type_matches=str)
+        with self.assertRaises(TypeError):
+            ImmutableSet.of(string_set, check_top_type_matches=int)
+
+        # we want to check that type checking still works when the original immutable set wasn't
+        # typed checked up front
+        unchecked_string_set = ImmutableSet.of(["one", "two", "three"])
+        ImmutableSet.of(unchecked_string_set, check_top_type_matches=str)
+        with self.assertRaises(TypeError):
+            ImmutableSet.of(unchecked_string_set, check_top_type_matches=int)
 
     @staticmethod
     def type_annotations() -> int:

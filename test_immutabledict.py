@@ -5,7 +5,6 @@ from flexnlp.util.immutablecollections import ImmutableDict
 
 
 class TestImmutableDict(TestCase):
-
     def test_empty_dict(self):
         empty = ImmutableDict.empty()
         self.assertEqual(dict(empty), {})
@@ -84,6 +83,12 @@ class TestImmutableDict(TestCase):
 
     def test_slots(self):
         self.assertFalse(hasattr(ImmutableDict.of({'a': 1}), '__dict__'))
+
+    def test_repr(self):
+        self.assertEqual("i{1: 2, 3: 4}", repr(ImmutableDict.of({1: 2, 3: 4})))
+
+    def test_str(self):
+        self.assertEqual("{1: 2, 3: 4}", str(ImmutableDict.of({1: 2, 3: 4})))
 
     @staticmethod
     def type_annotations() -> int:
