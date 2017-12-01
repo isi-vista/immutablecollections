@@ -1,7 +1,7 @@
 from collections.abc import Set
 from unittest import TestCase
 
-from flexnlp.util.immutablecollections import ImmutableSet
+from flexnlp.util.immutablecollections import ImmutableSet, ImmutableList
 
 
 class TestImmutableSet(TestCase):
@@ -104,6 +104,20 @@ class TestImmutableSet(TestCase):
         ImmutableSet.of(unchecked_string_set, check_top_type_matches=str)
         with self.assertRaises(TypeError):
             ImmutableSet.of(unchecked_string_set, check_top_type_matches=int)
+
+    def test_as_list(self):
+        self.assertEqual(ImmutableList.of([3, 1, 2]), ImmutableSet.of([3, 1, 2]).as_list())
+
+    def test_require_ordered_input(self):
+        with self.assertRaises(ValueError):
+            ImmutableSet.of({"a", "b", "c"}, require_ordered_input=True)
+            ImmutableSet.builder(require_ordered_input=True).add_all({"a", "b", "c"})
+
+    def test_order_irrelevant_for_equals_hash(self):
+        x = ImmutableSet.of(["known", "jump"])
+        y = ImmutableSet.of(["jump", "known"])
+        self.assertEqual(x, y)
+        self.assertEqual(hash(x), hash(y))
 
     @staticmethod
     def type_annotations() -> int:
