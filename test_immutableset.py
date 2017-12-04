@@ -119,6 +119,12 @@ class TestImmutableSet(TestCase):
         self.assertEqual(x, y)
         self.assertEqual(hash(x), hash(y))
 
+    def test_ordering(self):
+        self.assertEqual(ImmutableList.of(["a", "b", "c"]),
+                         # why, of why did Python 3 get rid of cmp?
+                         ImmutableSet.builder(order_comparator=lambda a, b: (a > b) - (a < b))
+                         .add_all(["b", "c", "a"]).build().as_list())
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings
