@@ -125,6 +125,12 @@ class TestImmutableSet(TestCase):
                          ImmutableSet.builder(order_comparator=lambda a, b: (a > b) - (a < b))
                          .add_all(["b", "c", "a"]).build().as_list())
 
+    def test_difference(self):
+        self.assertEqual(ImmutableSet.of(["a", "c"]),
+                         ImmutableSet.of(["a", "b", "c"]).difference(ImmutableSet.of(["b", "d"])))
+        self.assertEqual(ImmutableSet.of(["a", "c"]),
+                         ImmutableSet.of(["a", "b", "c"]) - ImmutableSet.of(["b", "d"]))
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings
