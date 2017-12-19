@@ -121,8 +121,7 @@ class TestImmutableSet(TestCase):
 
     def test_ordering(self):
         self.assertEqual(ImmutableList.of(["a", "b", "c"]),
-                         # why, of why did Python 3 get rid of cmp?
-                         ImmutableSet.builder(order_comparator=lambda a, b: (a > b) - (a < b))
+                         ImmutableSet.builder(order_key=lambda x: x)
                          .add_all(["b", "c", "a"]).build().as_list())
 
     def test_difference(self):
