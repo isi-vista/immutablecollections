@@ -130,6 +130,10 @@ class TestImmutableSet(TestCase):
         self.assertEqual(ImmutableSet.of(["a", "c"]),
                          ImmutableSet.of(["a", "b", "c"]) - ImmutableSet.of(["b", "d"]))
 
+    def test_union(self):
+        self.assertEqual(ImmutableSet.of(["a", "c", "b"]),
+                         ImmutableSet.of(["a", "c"]).union(ImmutableSet.of(["b", "c"])) )
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings
