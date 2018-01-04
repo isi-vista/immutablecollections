@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from flexnlp.util.immutablecollections.immutablemultidict import ImmutableSetMultiDict
+from flexnlp.utils.immutablecollections.immutablemultidict import ImmutableSetMultiDict
 
 
 class TestImmutableMultiDict(TestCase):

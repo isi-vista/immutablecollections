@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from unittest import TestCase
 
-from flexnlp.util.immutablecollections import ImmutableList
+from flexnlp.utils.immutablecollections import ImmutableList
 
 
 class TestImmutableList(TestCase):

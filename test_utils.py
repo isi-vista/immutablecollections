@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from flexnlp.util.immutablecollections import ImmutableMixin, FrozenInstanceError
+from flexnlp.utils.immutablecollections import ImmutableMixin, FrozenInstanceError
 
 
 class Immutable(ImmutableMixin):
