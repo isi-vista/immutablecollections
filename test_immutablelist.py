@@ -9,6 +9,8 @@ class TestImmutableList(TestCase):
     def test_empty_list(self):
         empty = ImmutableList.empty()
         self.assertEqual(list(empty), [])
+        empty2 = ImmutableList.of([])
+        self.assertEqual(empty, empty2)
 
     def test_basic(self):
         items = [1, 2, 3]
@@ -70,7 +72,7 @@ class TestImmutableList(TestCase):
     def test_repr(self):
         self.assertEqual("i[1, 2, 3]", repr(ImmutableList.of([1, 2, 3])))
 
-    def test_repr(self):
+    def test_str(self):
         self.assertEqual("[1, 2, 3]", str(ImmutableList.of([1, 2, 3])))
 
     @staticmethod
