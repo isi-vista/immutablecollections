@@ -5,9 +5,24 @@ from flexnlp.utils.immutablecollections import ImmutableDict
 
 
 class TestImmutableDict(TestCase):
-    def test_empty_dict(self):
+    def test_empty(self):
         empty = ImmutableDict.empty()
-        self.assertEqual(dict(empty), {})
+        self.assertEqual(0, len(empty))
+        empty2 = ImmutableDict.of([])
+        self.assertEqual(0, len(empty2))
+        self.assertEqual(empty, empty2)
+        empty3 = ImmutableDict.builder().build()
+        self.assertEqual(0, len(empty3))
+        self.assertEqual(empty, empty3)
+
+    def test_empty_singleton(self):
+        empty1 = ImmutableDict.empty()
+        empty2 = ImmutableDict.empty()
+        self.assertIs(empty1, empty2)
+        empty3 = ImmutableDict.builder().build()
+        self.assertIs(empty1, empty3)
+        empty4 = ImmutableDict.of([])
+        self.assertIs(empty1, empty4)
 
     def test_basic(self):
         source = {'a': 1}

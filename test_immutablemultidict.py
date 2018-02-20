@@ -1,10 +1,31 @@
 from unittest import TestCase, skip
 
+from collections import Mapping
+
 from flexnlp.utils.immutablecollections.immutablemultidict import ImmutableSetMultiDict, \
     ImmutableListMultiDict
 
 
-class TestImmutableMultiDict(TestCase):
+class TestImmutableSetMultiDict(TestCase):
+    def test_empty(self):
+        empty = ImmutableSetMultiDict.empty()
+        self.assertEqual(0, len(empty))
+        empty2 = ImmutableSetMultiDict.of(dict())
+        self.assertEqual(0, len(empty2))
+        self.assertEqual(empty, empty2)
+        empty3 = ImmutableSetMultiDict.builder().build()
+        self.assertEqual(0, len(empty3))
+        self.assertEqual(empty, empty3)
+
+    def test_empty_singleton(self):
+        empty1 = ImmutableSetMultiDict.empty()
+        empty2 = ImmutableSetMultiDict.empty()
+        self.assertIs(empty1, empty2)
+        empty3 = ImmutableSetMultiDict.builder().build()
+        self.assertIs(empty1, empty3)
+        empty4 = ImmutableSetMultiDict.of(dict())
+        self.assertIs(empty1, empty4)
+
     def test_set_repr(self):
         self.assertEqual("i{1: {2, 3}, 4: {5, 6}}",
                          repr(ImmutableSetMultiDict.of(
@@ -46,13 +67,14 @@ class TestImmutableListMultiDict(TestCase):
         self.assertEqual(0, len(empty3))
         self.assertEqual(empty, empty3)
 
-    @skip
     def test_empty_singleton(self):
-        empty = ImmutableListMultiDict.empty()
-        empty2 = ImmutableListMultiDict.of(dict())
-        self.assertEqual(id(empty), id(empty2))
+        empty1 = ImmutableListMultiDict.empty()
+        empty2 = ImmutableListMultiDict.empty()
+        self.assertIs(empty1, empty2)
         empty3 = ImmutableListMultiDict.builder().build()
-        self.assertEqual(id(empty), id(empty3))
+        self.assertIs(empty1, empty3)
+        empty4 = ImmutableListMultiDict.of(dict())
+        self.assertIs(empty1, empty4)
 
     def test_of(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
@@ -83,15 +105,39 @@ class TestImmutableListMultiDict(TestCase):
             # noinspection PyUnresolvedReferences
             x[1][0] = 7
 
+    def test_cannot_init(self):
+        with self.assertRaises(TypeError):
+            # noinspection PyArgumentList
+            ImmutableListMultiDict(dict())
+
+    def test_isinstance(self):
+        x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
+        self.assertTrue(isinstance(x, Mapping))
+
+    def test_slots(self):
+        x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
+        self.assertFalse(hasattr(x, '__dict__'))
+
     def test_builder(self):
         b: ImmutableListMultiDict.Builder[str, int] = ImmutableListMultiDict.builder()
-        b.put('foo', [1, 2, 3])
+        b.put('key', 1)
+        b.put_all({'key': [3, 2, 1]})
+        x = b.build()
+        self.assertEqual([1, 3, 2, 1], list(x['key']))
 
-    def test_type_checking(self):
-        b: ImmutableListMultiDict.Builder[str, int] = ImmutableListMultiDict.builder()
-        b.put('foo', [1, 2, 3])
-        b.put(1, 2)
-        b.put(1, [2, 3])
-        b.put(1, "two")
-        print(b.build())
-        # {'foo': [[1, 2, 3]], 1: [2, [2, 3], 'two']} -- oops
+    def test_unmodified_copy_builder(self):
+        orig = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
+        self.assertIs(orig, orig.modified_copy_builder().build())
+
+    def test_modified_copy_builder(self):
+        orig = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
+        updated = orig.modified_copy_builder().put(4, 5).build()
+        expected = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6, 5]})
+        self.assertEqual(expected, updated)
+
+    def test_filter_keys(self):
+        orig = ImmutableListMultiDict.of({1: [1], 2: [2], 3: [3], 4: [4]})
+        evens = orig.filter_keys(lambda x: x % 2 == 0)
+        self.assertEqual(ImmutableListMultiDict.of({2: [2], 4: [4]}), evens)
+        all = orig.filter_keys(lambda x: x)
+        self.assertEqual(orig, all)
