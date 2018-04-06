@@ -105,6 +105,13 @@ class TestImmutableDict(TestCase):
     def test_str(self):
         self.assertEqual("{1: 2, 3: 4}", str(ImmutableDict.of({1: 2, 3: 4})))
 
+    def test_index(self):
+        by_length = ImmutableDict.index(["foo", "fooo", "la"], lambda s: len(s))
+        self.assertEqual(3, len(by_length))
+        self.assertEqual("foo", by_length[3])
+        self.assertEqual("fooo", by_length[4])
+        self.assertEqual("la", by_length[2])
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings
