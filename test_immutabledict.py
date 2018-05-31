@@ -36,6 +36,16 @@ class TestImmutableDict(TestCase):
         dict2 = ImmutableDict.of(dict1)
         self.assertIs(dict1, dict2)
 
+    def test_put_all_iterable(self):
+        dict1 = ImmutableDict.of({'a': 1})
+        dict2 = dict1.modified_copy_builder().put_all([('c', 'd'), ('e', 'f')]).build()
+        self.assertEqual(ImmutableDict.of({'a': 1, 'c': 'd', 'e': 'f'}), dict2)
+
+    def test_put_all_mapping(self):
+        dict1 = ImmutableDict.of({'a': 1})
+        dict2 = dict1.modified_copy_builder().put_all({'c': 'd', 'e': 'f'}).build()
+        self.assertEqual(ImmutableDict.of({'a': 1, 'c': 'd', 'e': 'f'}), dict2)
+
     def test_singleton_empty(self):
         empty = ImmutableDict.empty()
         empty2 = ImmutableDict.empty()
