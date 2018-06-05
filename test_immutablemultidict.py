@@ -2,6 +2,7 @@ from unittest import TestCase, skip
 
 from collections import Mapping
 
+from flexnlp.utils.immutablecollections import ImmutableSet
 from flexnlp.utils.immutablecollections.immutablemultidict import ImmutableSetMultiDict, \
     ImmutableListMultiDict
 
@@ -35,6 +36,12 @@ class TestImmutableSetMultiDict(TestCase):
         self.assertEqual("{1: {2, 3}, 4: {5, 6}}",
                          str(ImmutableSetMultiDict.of(
                              {1: [2, 3], 4: [5, 6]})))
+
+    def test_of(self):
+        x = ImmutableSetMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
+        self.assertEqual(ImmutableSet.of([2, 3]), x[1])
+        y = ImmutableSetMultiDict.of([(1, 2), (1, 2), (1, 3), (4, 5), (4, 6)])
+        self.assertEqual(ImmutableSet.of([2, 3]), y[1])
 
     def test_unmodified_copy_builder(self):
         ref: ImmutableSetMultiDict[str, int] = (ImmutableSetMultiDict.builder()
@@ -79,6 +86,8 @@ class TestImmutableListMultiDict(TestCase):
     def test_of(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
         self.assertEqual([2, 2, 3], list(x[1]))
+        y = ImmutableListMultiDict.of([(1, 2), (1, 2), (1, 3), (4, 5), (4, 6)])
+        self.assertEqual([2, 2, 3], list(y[1]))
 
     def test_repr(self):
         self.assertEqual("i{1: [2, 2, 3]}", repr(ImmutableListMultiDict.of({1: [2, 2, 3]})))
