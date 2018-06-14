@@ -1,10 +1,9 @@
-from unittest import TestCase, skip
-
 from collections import Mapping
+from unittest import TestCase
 
 from flexnlp.utils.immutablecollections import ImmutableSet
-from flexnlp.utils.immutablecollections.immutablemultidict import ImmutableSetMultiDict, \
-    ImmutableListMultiDict
+from flexnlp.utils.immutablecollections.immutablemultidict import ImmutableListMultiDict, \
+    ImmutableSetMultiDict
 
 
 class TestImmutableSetMultiDict(TestCase):
@@ -61,6 +60,13 @@ class TestImmutableSetMultiDict(TestCase):
                                                 .put('foo', 4).put('foo', 7)
                                                 .put('bar', 1).put('meep', -1).build())
         self.assertEqual(ref, updated)
+
+    def test_len(self):
+        x = ImmutableSetMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
+        # note 4, not 5, because two of them are collapsed
+        self.assertEqual(4, len(x))
+        # len's implementation often does caching, so test it works twice
+        self.assertEqual(4, len(x))
 
 
 class TestImmutableListMultiDict(TestCase):
@@ -121,7 +127,8 @@ class TestImmutableListMultiDict(TestCase):
 
     def test_isinstance(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
-        self.assertTrue(isinstance(x, Mapping))
+        self.assertFalse(isinstance(x, Mapping))
+        self.assertTrue(isinstance(x.as_dict(), Mapping))
 
     def test_slots(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
@@ -150,3 +157,11 @@ class TestImmutableListMultiDict(TestCase):
         self.assertEqual(ImmutableListMultiDict.of({2: [2], 4: [4]}), evens)
         all = orig.filter_keys(lambda x: x)
         self.assertEqual(orig, all)
+
+    def test_len(self):
+        x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
+        # note 5, not 4, because the list version maintains distinctness
+        self.assertEqual(5, len(x))
+        # len's implementation often does caching, so test it works twice
+        self.assertEqual(5, len(x))
+
