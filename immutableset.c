@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <structmember.h>
+#include <setobject.h>
 
 // based off of PVector https://github.com/tobgu/pyrsistent/blob/master/pvectorcmodule.c
 static PyTypeObject ImmutableSetType;
@@ -96,6 +97,24 @@ static PyObject *ImmutableSet_repr(ImmutableSet *self) {
     return s;
 }
 
+static int ImmutableSet_traverse(ImmutableSet *o, visitproc visit, void *arg) {
+    // Naive traverse
+    Py_ssize_t i;
+    for (i = ImmutableSet_len(o); --i >= 0;) {
+        Py_VISIT(ImmutableSet_get_item(o, i));
+    }
+
+    return 0;
+}
+
+static PyObject *ImmutableSet_richcompare(ImmutableSet *v, PyObject *w, int op) {
+    return PyObject_RichCompare(v->wrappedSet, w, op);
+}
+
+static PyObject *ImmutableSet_iter(ImmutableSet *self) {
+    return PyObject_GetIter(self->orderList);
+}
+
 static PyTypeObject ImmutableSetType = {
         PyVarObject_HEAD_INIT(NULL, 0)
         "immutablecollections.ImmutableSet",                         /* tp_name        */
@@ -109,8 +128,8 @@ static PyTypeObject ImmutableSetType = {
         (reprfunc)ImmutableSet_repr,                     /* tp_repr        */
         0,                                          /* tp_as_number   */
         &ImmutableSet_sequence_methods,                  /* tp_as_sequence */
-        0/*&PVector_mapping_methods*/,                   /* tp_as_mapping  */
-(hashfunc)ImmutableSet_hash,                     /* tp_hash        */
+        0,                                         /* tp_as_mapping  */
+        (hashfunc) ImmutableSet_hash,                     /* tp_hash        */
         0,                                          /* tp_call        */
         0,                                          /* tp_str         */
         0,                                          /* tp_getattro    */
@@ -118,10 +137,12 @@ static PyTypeObject ImmutableSetType = {
         0,                                          /* tp_as_buffer   */
         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,    /* tp_flags       */
         "ImmutableSet",   	              /* tp_doc         */
-0/*(traverseproc)PVector_traverse*/,             /* tp_traverse       */
+        // TODO: test traverse
+        (traverseproc) ImmutableSet_traverse,             /* tp_traverse       */
         0,                                          /* tp_clear          */
-        0/*PVector_richcompare*/,                        /* tp_richcompare    */
-        0/*offsetof(PVector, in_weakreflist)*/,          /* tp_weaklistoffset */
+        (richcmpfunc) ImmutableSet_richcompare,                        /* tp_richcompare    */
+        // TODO: what is this?
+        0/*offsetof(ImmutableSet, in_weakreflist)*/,          /* tp_weaklistoffset */
         0/*PVectorIter_iter*/,                           /* tp_iter           */
         0,                                          /* tp_iternext       */
         ImmutableSet_methods,                            /* tp_methods        */
