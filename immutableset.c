@@ -80,6 +80,22 @@ static PyMethodDef ImmutableSet_methods[] = {
         {NULL}
 };
 
+static PyObject *ImmutableSet_repr(ImmutableSet *self) {
+    // Reuse the list repr code, a bit less efficient but saves some code
+    PyObject *list_repr = PyObject_Repr(self->orderList);
+
+    if(list_repr == NULL) {
+        // Exception raised during call to repr
+        return NULL;
+    }
+
+    // TODO: strip []s from list repr
+    PyObject *s = PyUnicode_FromFormat("%s%U%s", "i{", list_repr, "}");
+    Py_DECREF(list_repr);
+
+    return s;
+}
+
 static PyTypeObject ImmutableSetType = {
         PyVarObject_HEAD_INIT(NULL, 0)
         "immutablecollections.ImmutableSet",                         /* tp_name        */
@@ -90,7 +106,7 @@ static PyTypeObject ImmutableSetType = {
         0,                                          /* tp_getattr     */
         0,                                          /* tp_setattr     */
         0,                                          /* tp_compare     */
-0 /*(reprfunc)PVector_repr*/,                     /* tp_repr        */
+        (reprfunc)ImmutableSet_repr,                     /* tp_repr        */
         0,                                          /* tp_as_number   */
         &ImmutableSet_sequence_methods,                  /* tp_as_sequence */
         0/*&PVector_mapping_methods*/,                   /* tp_as_mapping  */
