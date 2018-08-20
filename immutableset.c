@@ -372,3 +372,16 @@ PyObject* moduleinit(void) {
 PyMODINIT_FUNC PyInit_immutablecollections(void) {
     return moduleinit();
 }
+
+// TODO: empty singleton
+// TODO: extend abstractset
+// TODO: should we also extend sequence and dispense with as_list
+// from the Python version? Or do sequences have some equality guarantee?
+// TODO: union
+// TODO: intersection
+// TODO: difference
+// TODO: sub
+// TODO: str - like repr but no "i" prefix
+// TODO: type checking
+// TODO: require_ordered_input
+// TODO: support order_key on builder
