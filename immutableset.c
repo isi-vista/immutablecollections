@@ -23,6 +23,17 @@ typedef struct {
     //PyObject *in_weakreflist; /* List of weak references */
 } ImmutableSetBuilder;
 
+// this gets initialized in the module initialization code (moduleinit)
+static ImmutableSet *EMPY_SET = NULL;
+
+static ImmutableSet *makeEmptySet() {
+    ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
+    PyObject_GC_Track((PyObject *) immutableset);
+    immutableset->orderList = PyList_New(0);
+    immutableset->wrappedSet = PySet_New(NULL);
+    return immutableset;
+}
+
 #define HANDLE_ITERATION_ERROR()                         \
     if (PyErr_Occurred()) {                              \
       if (PyErr_ExceptionMatches(PyExc_StopIteration)) { \
@@ -128,6 +139,13 @@ static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
     // on a builder which has already been built
     // note that if we do this we need to be careful about
     // ImmutableSetBuilder_dealloc
+
+    // special case an empty set with a singleton
+    if (PyObject_Length(self->orderList) == 0) {
+        Py_INCREF(EMPY_SET);
+        return EMPY_SET;
+    }
+
     ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
     PyObject_GC_Track((PyObject *) immutableset);
     immutableset->orderList = PyList_New(0);
@@ -258,15 +276,10 @@ static PyTypeObject ImmutableSetBuilderType = {
         0,                                          /* tp_dictoffset     */
 };
 
-static PyObject* immutablecollections_immutableset(PyObject *self, PyObject *args) {
+static ImmutableSet *immutablecollections_immutableset(PyObject *self, PyObject *args) {
     PyObject *argObj = NULL;  /* list of arguments */
     PyObject *it;
     PyObject *(*iternext)(PyObject *);
-
-    ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
-    PyObject_GC_Track((PyObject*)immutableset);
-    immutableset->orderList = PyList_New(0);
-    immutableset->wrappedSet = PySet_New(NULL);
 
     if(!PyArg_ParseTuple(args, "|O", &argObj)) {
         return NULL;
@@ -282,10 +295,16 @@ static PyObject* immutablecollections_immutableset(PyObject *self, PyObject *arg
     if (item == NULL) {
         Py_DECREF(it);
         HANDLE_ITERATION_ERROR();
-        Py_INCREF(self);
-        // TODO: should have a singleton empty set object
-        return (PyObject *)immutableset;
+
+        // special case an empty set with a singleton
+        Py_INCREF(EMPY_SET);
+        return EMPY_SET;
     } else {
+        ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
+        PyObject_GC_Track((PyObject *) immutableset);
+        immutableset->orderList = PyList_New(0);
+        immutableset->wrappedSet = PySet_New(NULL);
+
         while (item != NULL) {
             if (!PySet_Contains(immutableset->wrappedSet, item)) {
                 PySet_Add(immutableset->wrappedSet, item);
@@ -296,7 +315,7 @@ static PyObject* immutablecollections_immutableset(PyObject *self, PyObject *arg
 
         Py_DECREF(it);
         HANDLE_ITERATION_ERROR();
-        return (PyObject *) immutableset;
+        return immutableset;
     }
 }
 
@@ -359,9 +378,7 @@ PyObject* moduleinit(void) {
         return NULL;
     }
 
-    /*if(EMPTY_VECTOR == NULL) {
-        EMPTY_VECTOR = emptyNewPvec();
-    }*/
+    EMPY_SET = makeEmptySet();
 
     Py_INCREF(&ImmutableSetType);
     PyModule_AddObject(m, "ImmutableSet", (PyObject *)&ImmutableSetType);
@@ -373,7 +390,6 @@ PyMODINIT_FUNC PyInit_immutablecollections(void) {
     return moduleinit();
 }
 
-// TODO: empty singleton
 // TODO: extend abstractset
 // TODO: should we also extend sequence and dispense with as_list
 // from the Python version? Or do sequences have some equality guarantee?
@@ -385,3 +401,4 @@ PyMODINIT_FUNC PyInit_immutablecollections(void) {
 // TODO: type checking
 // TODO: require_ordered_input
 // TODO: support order_key on builder
+// TODO: builder methods don't appear to be visible prior to doing a dir() on the object !?!?
