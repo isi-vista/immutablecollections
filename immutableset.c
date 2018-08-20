@@ -10,10 +10,18 @@ static PyTypeObject ImmutableSetType;
 
 typedef struct {
     PyObject_HEAD;
+    // TODO: use a tuple instead of a list
     PyObject* orderList;
     PyObject* wrappedSet;
     //PyObject *in_weakreflist; /* List of weak references */
 } ImmutableSet;
+
+typedef struct {
+    PyObject_HEAD;
+    PyObject *orderList;
+    PyObject *wrappedSet;
+    //PyObject *in_weakreflist; /* List of weak references */
+} ImmutableSetBuilder;
 
 #define HANDLE_ITERATION_ERROR()                         \
     if (PyErr_Occurred()) {                              \
@@ -26,6 +34,10 @@ typedef struct {
 
 // No access to internal members
 static PyMemberDef ImmutableSet_members[] = {
+        {NULL}  /* Sentinel */
+};
+
+static PyMemberDef ImmutableSetBuilder_members[] = {
         {NULL}  /* Sentinel */
 };
 
@@ -44,6 +56,23 @@ static void ImmutableSet_dealloc(ImmutableSet *self) {
     Py_TRASHCAN_SAFE_END(self);
     debug("end dealloc\n");
 }
+
+static void ImmutableSetBuilder_dealloc(ImmutableSetBuilder *self) {
+    debug("In builder dealloc\n");
+    PyObject_ClearWeakRefs((PyObject *) self);
+    debug("post clear weakrefs builder\n");
+
+    PyObject_GC_UnTrack((PyObject *) self);
+    Py_TRASHCAN_SAFE_BEGIN(self);
+
+            PyMem_Free(self->orderList);
+            PyMem_Free(self->wrappedSet);
+
+            PyObject_GC_Del(self);
+            Py_TRASHCAN_SAFE_END(self);
+    debug("end builder dealloc\n");
+}
+
 
 static long ImmutableSet_hash(ImmutableSet* self) {
     return PyObject_Hash(self->wrappedSet);
@@ -79,6 +108,40 @@ static PyMethodDef ImmutableSet_methods[] = {
         //{"index",       (PyCFunction)PVector_index, METH_VARARGS, "Return first index of value"},
         //{"tolist",      (PyCFunction)PVector_toList, METH_NOARGS, "Convert to list"},
         {NULL}
+};
+
+static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, PyObject *item) {
+
+    if (!PySet_Contains(self->wrappedSet, item)) {
+        PySet_Add(self->wrappedSet, item);
+        PyList_Append(self->orderList, item);
+    }
+    // from examples this seems to be necessary when returning self
+    Py_IncRef((PyObject *) self);
+    return self;
+}
+
+static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
+    // currently we always require this extra copy of the fields in case
+    // the builder is reused after more is added.  We can make this more
+    // efficient in the future by only triggering a copy if .add() is called
+    // on a builder which has already been built
+    // note that if we do this we need to be careful about
+    // ImmutableSetBuilder_dealloc
+    ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
+    PyObject_GC_Track((PyObject *) immutableset);
+    immutableset->orderList = PyList_New(0);
+    immutableset->wrappedSet = PySet_New(NULL);
+
+    _PyList_Extend((PyListObject *) immutableset->orderList, self->orderList);
+    _PySet_Update(immutableset->wrappedSet, self->wrappedSet);
+
+    return immutableset;
+}
+
+static PyMethodDef ImmutableSetBuilder_methods[] = {
+        {"add",   (PyCFunction) ImmutableSetBuilder_add,   METH_O,      "Add a value to an immutable set"},
+        {"build", (PyCFunction) ImmutableSetBuilder_build, METH_NOARGS, "Build an immutable set"}
 };
 
 static PyObject *ImmutableSet_repr(ImmutableSet *self) {
@@ -143,10 +206,50 @@ static PyTypeObject ImmutableSetType = {
         (richcmpfunc) ImmutableSet_richcompare,                        /* tp_richcompare    */
         // TODO: what is this?
         0/*offsetof(ImmutableSet, in_weakreflist)*/,          /* tp_weaklistoffset */
-        0/*PVectorIter_iter*/,                           /* tp_iter           */
+        ImmutableSet_iter,                           /* tp_iter           */
         0,                                          /* tp_iternext       */
         ImmutableSet_methods,                            /* tp_methods        */
         ImmutableSet_members,                            /* tp_members        */
+        0,                                          /* tp_getset         */
+        0,                                          /* tp_base           */
+        0,                                          /* tp_dict           */
+        0,                                          /* tp_descr_get      */
+        0,                                          /* tp_descr_set      */
+        0,                                          /* tp_dictoffset     */
+};
+
+static PyTypeObject ImmutableSetBuilderType = {
+        PyVarObject_HEAD_INIT(NULL, 0)
+        "immutablecollections.ImmutableSetBuilder",                         /* tp_name        */
+        sizeof(ImmutableSetBuilder),                            /* tp_basicsize   */
+        0,                                      /* tp_itemsize    */
+        (destructor) ImmutableSetBuilder_dealloc,                /* tp_dealloc     */
+        0,                                          /* tp_print       */
+        0,                                          /* tp_getattr     */
+        0,                                          /* tp_setattr     */
+        0,                                          /* tp_compare     */
+        0,                     /* tp_repr        */
+        0,                                          /* tp_as_number   */
+        0,                  /* tp_as_sequence */
+        0,                                         /* tp_as_mapping  */
+        0,                     /* tp_hash        */
+        0,                                          /* tp_call        */
+        0,                                          /* tp_str         */
+        0,                                          /* tp_getattro    */
+        0,                                          /* tp_setattro    */
+        0,                                          /* tp_as_buffer   */
+        Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,    /* tp_flags       */
+        "ImmutableSetBuilder",                  /* tp_doc         */
+        // TODO: test traverse
+        0,             /* tp_traverse       */
+        0,                                          /* tp_clear          */
+        0,                        /* tp_richcompare    */
+        // TODO: what is this?
+        0/*offsetof(ImmutableSet, in_weakreflist)*/,          /* tp_weaklistoffset */
+        0,                           /* tp_iter           */
+        0,                                          /* tp_iternext       */
+        ImmutableSetBuilder_methods,                            /* tp_methods        */
+        ImmutableSetBuilder_members,                            /* tp_members        */
         0,                                          /* tp_getset         */
         0,                                          /* tp_base           */
         0,                                          /* tp_dict           */
@@ -197,10 +300,15 @@ static PyObject* immutablecollections_immutableset(PyObject *self, PyObject *arg
     }
 }
 
-static PyObject *ImmutableSet_subscript(ImmutableSet* self, PyObject* item) {
-    // TODO: call get_item on internal list
-    return NULL;
+static PyObject *immutablecollections_immutablesetbuilder(PyObject *self) {
+    ImmutableSetBuilder *immutablesetbuilder = PyObject_GC_New(ImmutableSetBuilder, &ImmutableSetBuilderType);
+    PyObject_GC_Track((PyObject *) immutablesetbuilder);
+    immutablesetbuilder->orderList = PyList_New(0);
+    immutablesetbuilder->wrappedSet = PySet_New(NULL);
+
+    return (PyObject *) immutablesetbuilder;
 }
+
 
 static PyMethodDef ImmutableCollectionMethods[] = {
         {"immutableset", immutablecollections_immutableset, METH_VARARGS,
@@ -209,6 +317,14 @@ static PyMethodDef ImmutableCollectionMethods[] = {
                         ">>> set1 = immutableset([1, 2, 3])\n"
                         ">>> set\n"
                         "immutableset([1, 2, 3])"},
+        {"immutablesetbuilder", immutablecollections_immutablesetbuilder, METH_NOARGS,
+         "immutablesetbuilder()\n"
+         "Create a builder for an immutableset.\n\n"
+         ">>> set1_builder = immutablesetbuilder()\n"
+         "set1_builder.add(1)\n"
+         "set1_builder.add(2)\n"
+         ">>> set1_builder.build()\n"
+         "immutableset([1, 2])"},
         {NULL, NULL, 0, NULL}
 };
 
