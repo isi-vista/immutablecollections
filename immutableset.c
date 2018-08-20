@@ -171,9 +171,24 @@ static PyObject *ImmutableSet_repr(ImmutableSet *self) {
         return NULL;
     }
 
-    // TODO: strip []s from list repr
     PyObject *s = PyUnicode_FromFormat("%s%U%s", "i{", list_repr, "}");
     Py_DECREF(list_repr);
+
+    return s;
+}
+
+// str and repr differ only in that rep has i prefix to indicate immutability
+static PyObject *ImmutableSet_str(ImmutableSet *self) {
+    // Reuse the list repr code, a bit less efficient but saves some code
+    PyObject *list_str = PyObject_Str(self->orderList);
+
+    if (list_str == NULL) {
+        // Exception raised during call to repr
+        return NULL;
+    }
+
+    PyObject *s = PyUnicode_FromFormat("%s%U%s", "{", list_str, "}");
+    Py_DECREF(list_str);
 
     return s;
 }
@@ -212,7 +227,7 @@ static PyTypeObject ImmutableSetType = {
         0,                                         /* tp_as_mapping  */
         (hashfunc) ImmutableSet_hash,                     /* tp_hash        */
         0,                                          /* tp_call        */
-        0,                                          /* tp_str         */
+        ImmutableSet_str,                                          /* tp_str         */
         0,                                          /* tp_getattro    */
         0,                                          /* tp_setattro    */
         0,                                          /* tp_as_buffer   */
@@ -397,8 +412,8 @@ PyMODINIT_FUNC PyInit_immutablecollections(void) {
 // TODO: intersection
 // TODO: difference
 // TODO: sub
-// TODO: str - like repr but no "i" prefix
 // TODO: type checking
 // TODO: require_ordered_input
 // TODO: support order_key on builder
+// TODO: strip []s from repr/str
 // TODO: builder methods don't appear to be visible prior to doing a dir() on the object !?!?
