@@ -48,8 +48,12 @@ static long ImmutableSet_hash(ImmutableSet* self) {
     return PyObject_Hash(self->wrappedSet);
 }
 
+static Py_ssize_t ImmutableSet_len(ImmutableSet* self) {
+    return PyList_Size(self->orderList);
+}
+
 static PySequenceMethods ImmutableSet_sequence_methods = {
-        NULL /*(lenfunc)PVector_len*/,            /* sq_length */
+        (lenfunc)ImmutableSet_len,            /* sq_length */
         NULL /*(binaryfunc)PVector_extend*/,      /* sq_concat */
         NULL /*(ssizeargfunc)PVector_repeat*/,    /* sq_repeat */
         NULL /*(ssizeargfunc)PVector_get_item*/,  /* sq_item */
