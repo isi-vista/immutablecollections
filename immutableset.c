@@ -4,6 +4,9 @@
 // based off of PVector https://github.com/tobgu/pyrsistent/blob/master/pvectorcmodule.c
 static PyTypeObject ImmutableSetType;
 
+// #define debug(...)
+#define debug printf
+
 typedef struct {
     PyObject_HEAD;
     PyObject* orderList;
@@ -26,7 +29,9 @@ static PyMemberDef ImmutableSet_members[] = {
 };
 
 static void ImmutableSet_dealloc(ImmutableSet *self) {
+    debug("In dealloc\n");
     PyObject_ClearWeakRefs((PyObject *) self);
+    debug("post clear weakrefs\n");
 
     PyObject_GC_UnTrack((PyObject*)self);
     Py_TRASHCAN_SAFE_BEGIN(self);
@@ -36,6 +41,7 @@ static void ImmutableSet_dealloc(ImmutableSet *self) {
 
     PyObject_GC_Del(self);
     Py_TRASHCAN_SAFE_END(self);
+    debug("end dealloc\n");
 }
 
 static long ImmutableSet_hash(ImmutableSet* self) {
