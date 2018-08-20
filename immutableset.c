@@ -52,16 +52,24 @@ static Py_ssize_t ImmutableSet_len(ImmutableSet* self) {
     return PyList_Size(self->orderList);
 }
 
+static int ImmutableSet_contains(ImmutableSet* self, PyObject* queryItem) {
+    return PySet_Contains(self->wrappedSet, queryItem);
+}
+
+static PyObject* ImmutableSet_get_item(ImmutableSet *self, Py_ssize_t pos) {
+    return PyList_GetItem(self->orderList, pos);
+}
+
 static PySequenceMethods ImmutableSet_sequence_methods = {
         (lenfunc)ImmutableSet_len,            /* sq_length */
-        NULL /*(binaryfunc)PVector_extend*/,      /* sq_concat */
+        NULL,      /* sq_concat - n/a (immutable) */
         NULL /*(ssizeargfunc)PVector_repeat*/,    /* sq_repeat */
-        NULL /*(ssizeargfunc)PVector_get_item*/,  /* sq_item */
-        // TODO might want to move the slice function to here
+        (ssizeargfunc)ImmutableSet_get_item,  /* sq_item */
+        // TODO: should we support slicing?
         NULL,                            /* sq_slice */
         NULL,                            /* sq_ass_item */
         NULL,                            /* sq_ass_slice */
-        NULL,                            /* sq_contains */
+        (objobjproc)ImmutableSet_contains, /* sq_contains */
         NULL,                            /* sq_inplace_concat */
         NULL,                            /* sq_inplace_repeat */
 };
