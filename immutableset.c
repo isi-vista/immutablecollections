@@ -482,6 +482,7 @@ PyMODINIT_FUNC PyInit_immutablecollections(void) {
     return moduleinit();
 }
 
+¡
 // TODO: extend abstractset
 // TODO: should we also extend sequence and dispense with as_list
 // from the Python version? Or do sequences have some equality guarantee?
