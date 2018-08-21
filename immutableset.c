@@ -34,6 +34,16 @@ static ImmutableSet *makeEmptySet() {
     return immutableset;
 }
 
+// pre-declare some functions
+static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(PyObject *self);
+
+static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self);
+
+static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *self, PyObject *args);
+
+static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, PyObject *item);
+
+
 #define HANDLE_ITERATION_ERROR()                         \
     if (PyErr_Occurred()) {                              \
       if (PyErr_ExceptionMatches(PyExc_StopIteration)) { \
@@ -115,8 +125,48 @@ static PySequenceMethods ImmutableSet_sequence_methods = {
         NULL,                            /* sq_inplace_repeat */
 };
 
+static ImmutableSet *ImmutableSet_union(PyObject *self, PyObject *other) {
+    // inefficient placeholder implementation
+    ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder(self);
+
+    ImmutableSetBuilder_add_all(builder, self);
+    ImmutableSetBuilder_add_all(builder, other);
+
+    return ImmutableSetBuilder_build(builder);
+}
+
+static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) {
+    // inefficient placeholder implementation
+
+    // TODO: check that other is set_like, after we sub-class ourselves from AbstractSet
+
+    ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder(self);
+
+    PyObject *it;
+    it = PyObject_GetIter(self);
+    if (it == NULL) {
+        return NULL;
+    }
+
+    PyObject *(*iternext)(PyObject *);
+    iternext = *Py_TYPE(it)->tp_iternext;
+    PyObject *item = iternext(it);
+
+    while (item != NULL) {
+        if (PySet_Contains(other, item)) {
+            ImmutableSetBuilder_add(builder, item);
+        }
+        item = iternext(it);
+    }
+
+    return ImmutableSetBuilder_build(builder);
+}
+
 static PyMethodDef ImmutableSet_methods[] = {
-        //{"index",       (PyCFunction)PVector_index, METH_VARARGS, "Return first index of value"},
+        {"union",        (PyCFunction) ImmutableSet_union,        METH_O,
+                "Gets the union of this set and the provided elements"},
+        {"intersection", (PyCFunction) ImmutableSet_intersection, METH_O,
+                "Gets the intersection of this set and the provided set"},
         //{"tolist",      (PyCFunction)PVector_toList, METH_NOARGS, "Convert to list"},
         {NULL}
 };
@@ -129,6 +179,32 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, P
     }
     // from examples this seems to be necessary when returning self
     Py_IncRef((PyObject *) self);
+    return self;
+}
+
+static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *self, PyObject *args) {
+    PyObject *argObj = NULL;  /* list of arguments */
+    PyObject *it;
+    PyObject *(*iternext)(PyObject *);
+
+    if (!PyArg_ParseTuple(args, "|O", &argObj)) {
+        return NULL;
+    }
+
+    it = PyObject_GetIter(argObj);
+    if (it == NULL) {
+        return NULL;
+    }
+
+    iternext = *Py_TYPE(it)->tp_iternext;
+    PyObject *item = iternext(it);
+
+    while (item != NULL) {
+        ImmutableSetBuilder_add(self, item);
+        item = iternext(it);
+    }
+
+    Py_INCREF(self);
     return self;
 }
 
@@ -158,8 +234,9 @@ static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
 }
 
 static PyMethodDef ImmutableSetBuilder_methods[] = {
-        {"add",   (PyCFunction) ImmutableSetBuilder_add,   METH_O,      "Add a value to an immutable set"},
-        {"build", (PyCFunction) ImmutableSetBuilder_build, METH_NOARGS, "Build an immutable set"}
+        {"add",     (PyCFunction) ImmutableSetBuilder_add,     METH_O,       "Add a value to an immutable set"},
+        {"add_all", (PyCFunction) ImmutableSetBuilder_add_all, METH_VARARGS, "Adds multiple values to an immutable set"},
+        {"build",   (PyCFunction) ImmutableSetBuilder_build,   METH_NOARGS,  "Build an immutable set"}
 };
 
 static PyObject *ImmutableSet_repr(ImmutableSet *self) {
@@ -227,7 +304,7 @@ static PyTypeObject ImmutableSetType = {
         0,                                         /* tp_as_mapping  */
         (hashfunc) ImmutableSet_hash,                     /* tp_hash        */
         0,                                          /* tp_call        */
-        ImmutableSet_str,                                          /* tp_str         */
+        (reprfunc) ImmutableSet_str,                                          /* tp_str         */
         0,                                          /* tp_getattro    */
         0,                                          /* tp_setattro    */
         0,                                          /* tp_as_buffer   */
@@ -239,7 +316,7 @@ static PyTypeObject ImmutableSetType = {
         (richcmpfunc) ImmutableSet_richcompare,                        /* tp_richcompare    */
         // TODO: what is this?
         0/*offsetof(ImmutableSet, in_weakreflist)*/,          /* tp_weaklistoffset */
-        ImmutableSet_iter,                           /* tp_iter           */
+        (getiterfunc) ImmutableSet_iter,                           /* tp_iter           */
         0,                                          /* tp_iternext       */
         ImmutableSet_methods,                            /* tp_methods        */
         ImmutableSet_members,                            /* tp_members        */
@@ -334,24 +411,24 @@ static ImmutableSet *immutablecollections_immutableset(PyObject *self, PyObject 
     }
 }
 
-static PyObject *immutablecollections_immutablesetbuilder(PyObject *self) {
+static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(PyObject *self) {
     ImmutableSetBuilder *immutablesetbuilder = PyObject_GC_New(ImmutableSetBuilder, &ImmutableSetBuilderType);
     PyObject_GC_Track((PyObject *) immutablesetbuilder);
     immutablesetbuilder->orderList = PyList_New(0);
     immutablesetbuilder->wrappedSet = PySet_New(NULL);
 
-    return (PyObject *) immutablesetbuilder;
+    return immutablesetbuilder;
 }
 
 
 static PyMethodDef ImmutableCollectionMethods[] = {
-        {"immutableset", immutablecollections_immutableset, METH_VARARGS,
+        {"immutableset",        (PyCFunction) immutablecollections_immutableset,        METH_VARARGS,
                         "immutableset([iterable])\n"
                         "Create a new immutableset containing the elements in iterable.\n\n"
                         ">>> set1 = immutableset([1, 2, 3])\n"
                         ">>> set\n"
                         "immutableset([1, 2, 3])"},
-        {"immutablesetbuilder", immutablecollections_immutablesetbuilder, METH_NOARGS,
+        {"immutablesetbuilder", (PyCFunction) immutablecollections_immutablesetbuilder, METH_NOARGS,
          "immutablesetbuilder()\n"
          "Create a builder for an immutableset.\n\n"
          ">>> set1_builder = immutablesetbuilder()\n"
@@ -408,10 +485,9 @@ PyMODINIT_FUNC PyInit_immutablecollections(void) {
 // TODO: extend abstractset
 // TODO: should we also extend sequence and dispense with as_list
 // from the Python version? Or do sequences have some equality guarantee?
-// TODO: union
-// TODO: intersection
+// TODO: union - is throwing SystemError: new style getargs format but argument is not a tuple
+// TODO: intersection - draft implementation but needs debugging - GC object already tracked
 // TODO: difference
-// TODO: sub
 // TODO: type checking
 // TODO: require_ordered_input
 // TODO: support order_key on builder
