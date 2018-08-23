@@ -28,3 +28,8 @@ class TestImmutableSet(TestCase):
         self.assertIs(set1, set2)
         self.assertIs(set2, set3)
         self.assertIs(set3, set4)
+
+    def test_basic_equality(self):
+        a = immutableset([1, 2, 3])
+        b = immutableset([3, 2, 1])
+        self.assertEqual(a, b)
