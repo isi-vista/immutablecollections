@@ -524,6 +524,10 @@ PyObject* moduleinit(void) {
         return NULL;
     }
 
+    if (PyType_Ready(&ImmutableSetBuilderType) < 0) {
+        return NULL;
+    }
+
 
     m = PyModule_Create(&moduledef);
 
@@ -535,6 +539,8 @@ PyObject* moduleinit(void) {
 
     Py_INCREF(&ImmutableSetType);
     PyModule_AddObject(m, "ImmutableSet", (PyObject *)&ImmutableSetType);
+    Py_INCREF(&ImmutableSetBuilderType);
+    PyModule_AddObject(m, "ImmutableSetBuilder", (PyObject *) &ImmutableSetBuilderType);
 
     return m;
 }

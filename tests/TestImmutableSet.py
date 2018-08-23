@@ -12,7 +12,6 @@ class TestImmutableSet(TestCase):
     def test_ordered_builder(self):
         sort_key = lambda x: x[1]
         builder = immutablesetbuilder(order_key=sort_key)
-        dir(builder)
         builder.add("hello")
         builder.add("hallo")
         built = builder.build()
