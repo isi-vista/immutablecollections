@@ -20,6 +20,7 @@ typedef struct {
     PyObject_HEAD;
     PyObject *orderList;
     PyObject *wrappedSet;
+    PyObject *orderKey;
     //PyObject *in_weakreflist; /* List of weak references */
 } ImmutableSetBuilder;
 
@@ -35,7 +36,10 @@ static ImmutableSet *makeEmptySet() {
 }
 
 // pre-declare some functions
-static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(PyObject *self);
+static ImmutableSetBuilder *immutablecollections_immutablesetbuilder_internal();
+
+static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(
+        PyObject *self, PyObject *args, PyObject *keywords);
 
 static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self);
 
@@ -64,14 +68,16 @@ static PyMemberDef ImmutableSetBuilder_members[] = {
 
 static void ImmutableSet_dealloc(ImmutableSet *self) {
     debug("In dealloc\n");
-    PyObject_ClearWeakRefs((PyObject *) self);
+    //PyObject_ClearWeakRefs((PyObject *) self);
     debug("post clear weakrefs\n");
 
     PyObject_GC_UnTrack((PyObject*)self);
     Py_TRASHCAN_SAFE_BEGIN(self);
 
-    PyMem_Free(self->orderList);
-    PyMem_Free(self->wrappedSet);
+            Py_CLEAR(self->orderList);
+            Py_CLEAR(self->wrappedSet);
+//    PyMem_Free(self->orderList);
+//    PyMem_Free(self->wrappedSet);
 
     PyObject_GC_Del(self);
     Py_TRASHCAN_SAFE_END(self);
@@ -80,14 +86,16 @@ static void ImmutableSet_dealloc(ImmutableSet *self) {
 
 static void ImmutableSetBuilder_dealloc(ImmutableSetBuilder *self) {
     debug("In builder dealloc\n");
-    PyObject_ClearWeakRefs((PyObject *) self);
+    //PyObject_ClearWeakRefs((PyObject *) self);
     debug("post clear weakrefs builder\n");
 
     PyObject_GC_UnTrack((PyObject *) self);
     Py_TRASHCAN_SAFE_BEGIN(self);
 
-            PyMem_Free(self->orderList);
-            PyMem_Free(self->wrappedSet);
+            Py_CLEAR(self->orderList);
+            Py_CLEAR(self->wrappedSet);
+            //PyMem_Free(self->orderList);
+            //PyMem_Free(self->wrappedSet);
 
             PyObject_GC_Del(self);
             Py_TRASHCAN_SAFE_END(self);
@@ -127,7 +135,7 @@ static PySequenceMethods ImmutableSet_sequence_methods = {
 
 static ImmutableSet *ImmutableSet_union(PyObject *self, PyObject *other) {
     // inefficient placeholder implementation
-    ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder(self);
+    ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
 
     ImmutableSetBuilder_add_all(builder, self);
     ImmutableSetBuilder_add_all(builder, other);
@@ -140,7 +148,7 @@ static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) 
 
     // TODO: check that other is set_like, after we sub-class ourselves from AbstractSet
 
-    ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder(self);
+    ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
 
     PyObject *it;
     it = PyObject_GetIter(self);
@@ -208,6 +216,17 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *sel
     return self;
 }
 
+static PyObject *sortWithKey(PyObject *list, PyObject *key) {
+    PyObject *argTuple = PyTuple_New(0);
+    PyObject *keywords = PyDict_New();
+    PyObject *keyString = PyUnicode_FromString("key");
+    PyDict_SetItem(keywords, keyString, key);
+
+    PyObject *sortMethod = PyObject_GetAttrString(list, "sort");
+
+    return PyObject_Call(sortMethod, argTuple, keywords);
+}
+
 static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
     // currently we always require this extra copy of the fields in case
     // the builder is reused after more is added.  We can make this more
@@ -229,6 +248,12 @@ static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
 
     _PyList_Extend((PyListObject *) immutableset->orderList, self->orderList);
     _PySet_Update(immutableset->wrappedSet, self->wrappedSet);
+
+    if (self->orderKey != NULL) {
+        if (sortWithKey(immutableset->orderList, self->orderKey) == NULL) {
+            return NULL;
+        }
+    }
 
     return immutableset;
 }
@@ -393,9 +418,9 @@ static ImmutableSet *immutablecollections_immutableset(PyObject *self, PyObject 
         return EMPY_SET;
     } else {
         ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
-        PyObject_GC_Track((PyObject *) immutableset);
         immutableset->orderList = PyList_New(0);
         immutableset->wrappedSet = PySet_New(NULL);
+        PyObject_GC_Track((PyObject *) immutableset);
 
         while (item != NULL) {
             if (!PySet_Contains(immutableset->wrappedSet, item)) {
@@ -411,11 +436,41 @@ static ImmutableSet *immutablecollections_immutableset(PyObject *self, PyObject 
     }
 }
 
-static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(PyObject *self) {
+static ImmutableSetBuilder *immutablecollections_immutablesetbuilder_internal() {
+    PyObject *argsTuple = PyTuple_New(0);
+    PyObject *kwArgs = PyDict_New();
+
+    // TODO: do I need to decrement the refcount for these or not? Do they automatically
+    // get a count of 1 on creation?
+    return immutablecollections_immutablesetbuilder(NULL, argsTuple, kwArgs);
+}
+
+static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(PyObject *self,
+                                                                     PyObject *args, PyObject *keywords) {
     ImmutableSetBuilder *immutablesetbuilder = PyObject_GC_New(ImmutableSetBuilder, &ImmutableSetBuilderType);
-    PyObject_GC_Track((PyObject *) immutablesetbuilder);
     immutablesetbuilder->orderList = PyList_New(0);
     immutablesetbuilder->wrappedSet = PySet_New(NULL);
+
+    PyObject *key = NULL;  /* list of arguments */
+
+    static char *kwlist[] = {"order_key", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "|O", kwlist, &key)) {
+        return NULL;
+    }
+
+    if (key != NULL) {
+        if (!PyFunction_Check(key)) {
+            // TODO: presumably this should clean up the memory allocated above, ugh. Leaving this TODO since
+            // in most cases this is not a recoverable error anyway
+            return NULL;
+        }
+        Py_INCREF(key);
+    }
+
+    immutablesetbuilder->orderKey = key;
+
+    PyObject_GC_Track((PyObject *) immutablesetbuilder);
 
     return immutablesetbuilder;
 }
@@ -428,7 +483,7 @@ static PyMethodDef ImmutableCollectionMethods[] = {
                         ">>> set1 = immutableset([1, 2, 3])\n"
                         ">>> set\n"
                         "immutableset([1, 2, 3])"},
-        {"immutablesetbuilder", (PyCFunction) immutablecollections_immutablesetbuilder, METH_NOARGS,
+        {"immutablesetbuilder", (PyCFunction) immutablecollections_immutablesetbuilder, METH_KEYWORDS | METH_VARARGS,
          "immutablesetbuilder()\n"
          "Create a builder for an immutableset.\n\n"
          ">>> set1_builder = immutablesetbuilder()\n"
@@ -482,7 +537,7 @@ PyMODINIT_FUNC PyInit_immutablecollections(void) {
     return moduleinit();
 }
 
-¡
+
 // TODO: extend abstractset
 // TODO: should we also extend sequence and dispense with as_list
 // from the Python version? Or do sequences have some equality guarantee?
