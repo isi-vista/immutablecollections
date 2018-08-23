@@ -7,7 +7,7 @@ faulthandler.enable()
 
 class TestImmutableSet(TestCase):
     def test_set_construction(self):
-        immutableset([1,2,3])
+        immutableset([1, 2, 3])
 
     def test_ordered_builder(self):
         sort_key = lambda x: x[1]
@@ -33,3 +33,18 @@ class TestImmutableSet(TestCase):
         a = immutableset([1, 2, 3])
         b = immutableset([3, 2, 1])
         self.assertEqual(a, b)
+
+    def test_add_all(self):
+        builder = immutablesetbuilder()
+        builder.add(3)
+        builder.add_all([2, 1])
+
+        ref = immutableset([1, 2, 3])
+
+        self.assertEqual(ref, builder.build())
+
+    # def test_basic_union(self):
+    #    a = immutableset([1, 2, 3])
+    #    b = immutableset([3, 4, 5])
+    #    ref = immutableset([1, 2, 3, 4, 5])
+    #    self.assertEqual(ref, a.union(b))
