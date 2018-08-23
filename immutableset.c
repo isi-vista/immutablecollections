@@ -302,13 +302,8 @@ static PyObject *ImmutableSet_str(ImmutableSet *self) {
 }
 
 static int ImmutableSet_traverse(ImmutableSet *o, visitproc visit, void *arg) {
-    // Naive traverse
-    Py_ssize_t i;
-    for (i = ImmutableSet_len(o); --i >= 0;) {
-        Py_VISIT(ImmutableSet_get_item(o, i));
-    }
-
-    return 0;
+    Py_VISIT(o->orderList);
+    Py_VISIT(o->wrappedSet);
 }
 
 static PyObject *ImmutableSet_richcompare(ImmutableSet *v, PyObject *w, int op) {
@@ -341,7 +336,6 @@ static PyTypeObject ImmutableSetType = {
         0,                                          /* tp_as_buffer   */
         Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,    /* tp_flags       */
         "ImmutableSet",   	              /* tp_doc         */
-        // TODO: test traverse
         (traverseproc) ImmutableSet_traverse,             /* tp_traverse       */
         0,                                          /* tp_clear          */
         (richcmpfunc) ImmutableSet_richcompare,                        /* tp_richcompare    */
