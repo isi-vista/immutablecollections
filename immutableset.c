@@ -224,7 +224,13 @@ static PyObject *sortWithKey(PyObject *list, PyObject *key) {
 
     PyObject *sortMethod = PyObject_GetAttrString(list, "sort");
 
-    return PyObject_Call(sortMethod, argTuple, keywords);
+    PyObject *retVal = PyObject_Call(sortMethod, argTuple, keywords);
+
+    Py_DECREF(keyString);
+    Py_DECREF(keywords);
+    Py_DECREF(argTuple);
+
+    return retVal;
 }
 
 static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
