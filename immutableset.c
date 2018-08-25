@@ -198,7 +198,8 @@ static PyMethodDef ImmutableSet_methods[] = {
         {NULL}
 };
 
-static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, PyObject *item) {
+static void ImmutableSetBuilder_add_internal(ImmutableSetBuilder *self, PyObject *item) {
+    // splut off from plain _add so we don't keep upping the refcount of self in order to return self
     debug("builder.add enter");
     PyObject_Print(item, stdout, 0);
     PyObject_Print(self->wrappedSet, stdout, 0);
@@ -208,6 +209,10 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, P
     }
     debug("builder.add post-add");
     PyObject_Print(self->wrappedSet, stdout, 0);
+}
+
+static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, PyObject *item) {
+    ImmutableSetBuilder_add_internal(self, item);
     // from examples this seems to be necessary when returning self
     Py_IncRef((PyObject *) self);
     return self;
@@ -226,7 +231,7 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add_all_internal(ImmutableSetBui
     PyObject *item = iternext(it);
 
     while (item != NULL) {
-        ImmutableSetBuilder_add(self, item);
+        ImmutableSetBuilder_add_internal(self, item);
         item = iternext(it);
     }
 

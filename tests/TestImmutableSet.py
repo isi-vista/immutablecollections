@@ -42,6 +42,15 @@ class TestImmutableSet(TestCase):
         b = immutableset([3, 2, 1])
         self.assertEqual(a, b)
 
+    def test_add_multiple(self):
+        builder = immutablesetbuilder()
+        builder.add(3)
+        builder.add(2)
+
+        ref = immutableset([3, 2])
+
+        self.assertEqual(ref, builder.build())
+
     def test_add_all(self):
         builder = immutablesetbuilder()
         builder.add(3)
