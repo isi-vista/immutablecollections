@@ -1,6 +1,7 @@
+from typing import Sequence, AbstractSet
 from unittest import TestCase
 import faulthandler
-from immutablecollections import immutableset, immutablesetbuilder
+from immutablecollections import immutableset, immutablesetbuilder, ImmutableSet
 
 faulthandler.enable()
 
@@ -8,6 +9,12 @@ faulthandler.enable()
 class TestImmutableSet(TestCase):
     def test_set_construction(self):
         immutableset([1, 2, 3])
+
+    def testIsSet(self):
+        self.assertTrue(isinstance(immutableset([1,2,3]), AbstractSet))
+
+    #def testIsSequence(self):
+    #    self.assertTrue(isinstance(immutableset([1,2,3]), Sequence))
 
     def test_ordered_builder(self):
         sort_key = lambda x: x[1]
@@ -43,8 +50,14 @@ class TestImmutableSet(TestCase):
 
         self.assertEqual(ref, builder.build())
 
-    # def test_basic_union(self):
-    #    a = immutableset([1, 2, 3])
-    #    b = immutableset([3, 4, 5])
-    #    ref = immutableset([1, 2, 3, 4, 5])
-    #    self.assertEqual(ref, a.union(b))
+    def test_basic_union(self):
+        a = immutableset([1, 2, 3])
+        b = immutableset([3, 4, 5])
+        ref = immutableset([1, 2, 3, 4, 5])
+        self.assertEqual(ref, a.union(b))
+
+    def test_basic_intersection(self):
+        a = immutableset([1, 2, 3])
+        b = immutableset([3, 4, 5])
+        ref = immutableset([3])
+        self.assertEqual(ref, a.intersection(b))

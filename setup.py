@@ -8,9 +8,8 @@ from distutils.command.build_ext import build_ext
 from distutils.errors import CCompilerError
 from distutils.errors import DistutilsPlatformError, DistutilsExecError
 
-
-#readme_path = os.path.join(os.path.dirname(__file__), 'README.rst')
-#with codecs.open(readme_path, encoding='utf8') as f:
+# readme_path = os.path.join(os.path.dirname(__file__), 'README.rst')
+# with codecs.open(readme_path, encoding='utf8') as f:
 #    readme = f.read()
 readme = ""
 
@@ -57,6 +56,7 @@ WARNING: Could not build the %s.
                                                   "the compilation "
                                                   "failed."))
 
+
 setup(
     name='immutablecollections',
     version='0.1.0',
@@ -76,10 +76,13 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-#    test_suite='tests',
+    #    test_suite='tests',
     scripts=[],
     ext_modules=extensions,
-    #cmdclass={"build_ext": custom_build_ext},
+    # cmdclass={"build_ext": custom_build_ext},
     install_requires=[],
-    packages=[]
+    packages=[],
+    package_data={
+        'immutablecollections': ['py.typed']
+    }
 )

@@ -44,6 +44,7 @@ static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(
 static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self);
 
 static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *self, PyObject *args);
+static ImmutableSetBuilder *ImmutableSetBuilder_add_all_internal(ImmutableSetBuilder *self, PyObject *args);
 
 static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, PyObject *item);
 
@@ -137,18 +138,24 @@ static ImmutableSet *ImmutableSet_union(PyObject *self, PyObject *other) {
     // inefficient placeholder implementation
     ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
 
-    ImmutableSetBuilder_add_all(builder, self);
-    ImmutableSetBuilder_add_all(builder, other);
+    debug("before union add self");
+    ImmutableSetBuilder_add_all_internal(builder, self);
+    debug("before union add other");
+    ImmutableSetBuilder_add_all_internal(builder, other);
 
     return ImmutableSetBuilder_build(builder);
 }
 
 static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) {
     // inefficient placeholder implementation
+    debug("enter intersection\n");
 
     // TODO: check that other is set_like, after we sub-class ourselves from AbstractSet
 
     ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
+
+    debug("intersection set initialize");
+    PyObject_Print(builder->wrappedSet, stdout, 0);
 
     PyObject *it;
     it = PyObject_GetIter(self);
@@ -156,16 +163,28 @@ static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) 
         return NULL;
     }
 
+    debug("enter pre-iterable\n");
+
     PyObject *(*iternext)(PyObject *);
     iternext = *Py_TYPE(it)->tp_iternext;
     PyObject *item = iternext(it);
 
+
     while (item != NULL) {
+        debug("pre-contain\n");
+
         if (PySet_Contains(other, item)) {
+            debug("intersection adds\n");
+            PyObject_Print(item, stdout, 0);
             ImmutableSetBuilder_add(builder, item);
         }
+        debug("pre-next\n");
         item = iternext(it);
     }
+
+    debug("pre-build\n");
+    PyObject_Print(builder->orderList, stdout, 0);
+    PyObject_Print(builder->wrappedSet, stdout, 0);
 
     return ImmutableSetBuilder_build(builder);
 }
@@ -180,26 +199,25 @@ static PyMethodDef ImmutableSet_methods[] = {
 };
 
 static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, PyObject *item) {
-
+    debug("builder.add enter");
+    PyObject_Print(item, stdout, 0);
+    PyObject_Print(self->wrappedSet, stdout, 0);
     if (!PySet_Contains(self->wrappedSet, item)) {
         PySet_Add(self->wrappedSet, item);
         PyList_Append(self->orderList, item);
     }
+    debug("builder.add post-add");
+    PyObject_Print(self->wrappedSet, stdout, 0);
     // from examples this seems to be necessary when returning self
     Py_IncRef((PyObject *) self);
     return self;
 }
 
-static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *self, PyObject *args) {
-    PyObject *argObj = NULL;  /* list of arguments */
+static ImmutableSetBuilder *ImmutableSetBuilder_add_all_internal(ImmutableSetBuilder *self, PyObject *iterable) {
     PyObject *it;
     PyObject *(*iternext)(PyObject *);
 
-    if (!PyArg_ParseTuple(args, "|O", &argObj)) {
-        return NULL;
-    }
-
-    it = PyObject_GetIter(argObj);
+    it = PyObject_GetIter(iterable);
     if (it == NULL) {
         return NULL;
     }
@@ -215,6 +233,17 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *sel
     Py_INCREF(self);
     return self;
 }
+
+static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *self, PyObject *args) {
+    PyObject *argObj = NULL;  /* list of arguments */
+
+    if (!PyArg_ParseTuple(args, "|O", &argObj)) {
+        return NULL;
+    }
+
+    return ImmutableSetBuilder_add_all_internal(self, argObj);
+}
+
 
 static PyObject *sortWithKey(PyObject *list, PyObject *key) {
     PyObject *argTuple = PyTuple_New(0);
@@ -234,6 +263,8 @@ static PyObject *sortWithKey(PyObject *list, PyObject *key) {
 }
 
 static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
+    debug("in-build\n");
+
     // currently we always require this extra copy of the fields in case
     // the builder is reused after more is added.  We can make this more
     // efficient in the future by only triggering a copy if .add() is called
@@ -243,19 +274,35 @@ static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
 
     // special case an empty set with a singleton
     if (PyObject_Length(self->orderList) == 0) {
+        debug("build-empty-singleton\n");
+
         Py_INCREF(EMPY_SET);
         return EMPY_SET;
     }
+
+    debug("build-pre-gc-new\n");
 
     ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
     PyObject_GC_Track((PyObject *) immutableset);
     immutableset->orderList = PyList_New(0);
     immutableset->wrappedSet = PySet_New(NULL);
 
+    debug("build-pre-extend\n");
+
+    PyObject_Print(immutableset->orderList, stdout, 0);
+    PyObject_Print(immutableset->wrappedSet, stdout, 0);
+    PyObject_Print(self->orderList, stdout, 0);
+    PyObject_Print(self->wrappedSet, stdout, 0);
+
+
     _PyList_Extend((PyListObject *) immutableset->orderList, self->orderList);
+    debug("build-pre-update\n");
+
     _PySet_Update(immutableset->wrappedSet, self->wrappedSet);
 
     if (self->orderKey != NULL) {
+        debug("build-sort\n");
+
         if (sortWithKey(immutableset->orderList, self->orderKey) == NULL) {
             return NULL;
         }
