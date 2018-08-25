@@ -235,6 +235,8 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add_all_internal(ImmutableSetBui
         item = iternext(it);
     }
 
+    Py_DECREF(it);
+
     Py_INCREF(self);
     return self;
 }
@@ -304,6 +306,8 @@ static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
     debug("build-pre-update\n");
 
     _PySet_Update(immutableset->wrappedSet, self->wrappedSet);
+
+    debug("build-post-update\n");
 
     if (self->orderKey != NULL) {
         debug("build-sort\n");
