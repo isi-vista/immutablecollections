@@ -13,7 +13,8 @@ typedef struct {
     // TODO: use a tuple instead of a list
     PyObject* orderList;
     PyObject* wrappedSet;
-    //PyObject *in_weakreflist; /* List of weak references */
+    // just supports ImmutableSet as target of weak references
+    PyObject *in_weakreflist;
 } ImmutableSet;
 
 typedef struct {
@@ -21,7 +22,8 @@ typedef struct {
     PyObject *orderList;
     PyObject *wrappedSet;
     PyObject *orderKey;
-    //PyObject *in_weakreflist; /* List of weak references */
+    // just supports ImmutableSetBuilder as target of weak references
+    PyObject *in_weakreflist;
 } ImmutableSetBuilder;
 
 // this gets initialized in the module initialization code (moduleinit)
@@ -29,9 +31,10 @@ static ImmutableSet *EMPY_SET = NULL;
 
 static ImmutableSet *makeEmptySet() {
     ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
-    PyObject_GC_Track((PyObject *) immutableset);
     immutableset->orderList = PyList_New(0);
     immutableset->wrappedSet = PySet_New(NULL);
+    immutableset->in_weakreflist = NULL;
+    PyObject_GC_Track((PyObject *) immutableset);
     return immutableset;
 }
 
@@ -44,7 +47,10 @@ static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(
 static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self);
 
 static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *self, PyObject *args);
-static ImmutableSetBuilder *ImmutableSetBuilder_add_all_internal(ImmutableSetBuilder *self, PyObject *args);
+
+static void ImmutableSetBuilder_add_internal(ImmutableSetBuilder *self, PyObject *item);
+
+static void ImmutableSetBuilder_add_all_internal(ImmutableSetBuilder *self, PyObject *args);
 
 static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, PyObject *item);
 
@@ -72,13 +78,15 @@ static void ImmutableSet_dealloc(ImmutableSet *self) {
     //PyObject_ClearWeakRefs((PyObject *) self);
     debug("post clear weakrefs\n");
 
+    if (self->in_weakreflist != NULL) {
+        PyObject_ClearWeakRefs((PyObject *) self);
+    }
+
     PyObject_GC_UnTrack((PyObject*)self);
     Py_TRASHCAN_SAFE_BEGIN(self);
 
             Py_CLEAR(self->orderList);
             Py_CLEAR(self->wrappedSet);
-//    PyMem_Free(self->orderList);
-//    PyMem_Free(self->wrappedSet);
 
     PyObject_GC_Del(self);
     Py_TRASHCAN_SAFE_END(self);
@@ -90,13 +98,15 @@ static void ImmutableSetBuilder_dealloc(ImmutableSetBuilder *self) {
     //PyObject_ClearWeakRefs((PyObject *) self);
     debug("post clear weakrefs builder\n");
 
+    if (self->in_weakreflist != NULL) {
+        PyObject_ClearWeakRefs((PyObject *) self);
+    }
+
     PyObject_GC_UnTrack((PyObject *) self);
     Py_TRASHCAN_SAFE_BEGIN(self);
 
             Py_CLEAR(self->orderList);
             Py_CLEAR(self->wrappedSet);
-            //PyMem_Free(self->orderList);
-            //PyMem_Free(self->wrappedSet);
 
             PyObject_GC_Del(self);
             Py_TRASHCAN_SAFE_END(self);
@@ -134,27 +144,30 @@ static PySequenceMethods ImmutableSet_sequence_methods = {
         NULL,                            /* sq_inplace_repeat */
 };
 
+// returns ownership of a reference to the resulting ImmutableSet
 static ImmutableSet *ImmutableSet_union(PyObject *self, PyObject *other) {
     // inefficient placeholder implementation
     ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
 
-    debug("before union add self");
     ImmutableSetBuilder_add_all_internal(builder, self);
-    debug("before union add other");
     ImmutableSetBuilder_add_all_internal(builder, other);
 
-    return ImmutableSetBuilder_build(builder);
+    ImmutableSet *ret = ImmutableSetBuilder_build(builder);
+
+    Py_DECREF(builder);
+
+    return ret;
 }
 
+// returns ownership of a reference to the resulting ImmutableSet
 static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) {
     // inefficient placeholder implementation
-    debug("enter intersection\n");
-
     // TODO: check that other is set_like, after we sub-class ourselves from AbstractSet
 
     ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
 
-    debug("intersection set initialize");
+    PyObject_Print(self, stdout, 0);
+    PyObject_Print(other, stdout, 0);
     PyObject_Print(builder->wrappedSet, stdout, 0);
 
     PyObject *it;
@@ -163,30 +176,29 @@ static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) 
         return NULL;
     }
 
-    debug("enter pre-iterable\n");
-
     PyObject *(*iternext)(PyObject *);
     iternext = *Py_TYPE(it)->tp_iternext;
     PyObject *item = iternext(it);
 
 
     while (item != NULL) {
-        debug("pre-contain\n");
-
-        if (PySet_Contains(other, item)) {
-            debug("intersection adds\n");
+        int containmentCheck = PySequence_Contains(other, item);
+        if (containmentCheck == 1) {
             PyObject_Print(item, stdout, 0);
-            ImmutableSetBuilder_add(builder, item);
+            ImmutableSetBuilder_add_internal(builder, item);
         }
-        debug("pre-next\n");
         item = iternext(it);
     }
 
-    debug("pre-build\n");
+    // done with iterator
+    Py_DECREF(it);
+
     PyObject_Print(builder->orderList, stdout, 0);
     PyObject_Print(builder->wrappedSet, stdout, 0);
 
-    return ImmutableSetBuilder_build(builder);
+    ImmutableSet *ret = ImmutableSetBuilder_build(builder);
+    Py_DECREF(builder);
+    return ret;
 }
 
 static PyMethodDef ImmutableSet_methods[] = {
@@ -198,16 +210,17 @@ static PyMethodDef ImmutableSet_methods[] = {
         {NULL}
 };
 
+// borrows the reference to item
 static void ImmutableSetBuilder_add_internal(ImmutableSetBuilder *self, PyObject *item) {
     // splut off from plain _add so we don't keep upping the refcount of self in order to return self
-    debug("builder.add enter");
+    debug("builder.add enter\n");
     PyObject_Print(item, stdout, 0);
     PyObject_Print(self->wrappedSet, stdout, 0);
     if (!PySet_Contains(self->wrappedSet, item)) {
         PySet_Add(self->wrappedSet, item);
         PyList_Append(self->orderList, item);
     }
-    debug("builder.add post-add");
+    debug("builder.add post-add\n");
     PyObject_Print(self->wrappedSet, stdout, 0);
 }
 
@@ -218,13 +231,13 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add(ImmutableSetBuilder *self, P
     return self;
 }
 
-static ImmutableSetBuilder *ImmutableSetBuilder_add_all_internal(ImmutableSetBuilder *self, PyObject *iterable) {
+static void ImmutableSetBuilder_add_all_internal(ImmutableSetBuilder *self, PyObject *iterable) {
     PyObject *it;
     PyObject *(*iternext)(PyObject *);
 
     it = PyObject_GetIter(iterable);
     if (it == NULL) {
-        return NULL;
+        return;
     }
 
     iternext = *Py_TYPE(it)->tp_iternext;
@@ -236,9 +249,6 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add_all_internal(ImmutableSetBui
     }
 
     Py_DECREF(it);
-
-    Py_INCREF(self);
-    return self;
 }
 
 static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *self, PyObject *args) {
@@ -248,7 +258,10 @@ static ImmutableSetBuilder *ImmutableSetBuilder_add_all(ImmutableSetBuilder *sel
         return NULL;
     }
 
-    return ImmutableSetBuilder_add_all_internal(self, argObj);
+    ImmutableSetBuilder_add_all_internal(self, argObj);
+
+    Py_INCREF(self);
+    return self;
 }
 
 
@@ -289,10 +302,7 @@ static ImmutableSet *ImmutableSetBuilder_build(ImmutableSetBuilder *self) {
 
     debug("build-pre-gc-new\n");
 
-    ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
-    PyObject_GC_Track((PyObject *) immutableset);
-    immutableset->orderList = PyList_New(0);
-    immutableset->wrappedSet = PySet_New(NULL);
+    ImmutableSet *immutableset = makeEmptySet();
 
     debug("build-pre-extend\n");
 
@@ -396,7 +406,7 @@ static PyTypeObject ImmutableSetType = {
         0,                                          /* tp_clear          */
         (richcmpfunc) ImmutableSet_richcompare,                        /* tp_richcompare    */
         // TODO: what is this?
-        0/*offsetof(ImmutableSet, in_weakreflist)*/,          /* tp_weaklistoffset */
+        offsetof(ImmutableSet, in_weakreflist),          /* tp_weaklistoffset */
         (getiterfunc) ImmutableSet_iter,                           /* tp_iter           */
         0,                                          /* tp_iternext       */
         ImmutableSet_methods,                            /* tp_methods        */
@@ -436,7 +446,7 @@ static PyTypeObject ImmutableSetBuilderType = {
         0,                                          /* tp_clear          */
         0,                        /* tp_richcompare    */
         // TODO: what is this?
-        0/*offsetof(ImmutableSet, in_weakreflist)*/,          /* tp_weaklistoffset */
+        offsetof(ImmutableSetBuilder, in_weakreflist),          /* tp_weaklistoffset */
         0,                           /* tp_iter           */
         0,                                          /* tp_iternext       */
         ImmutableSetBuilder_methods,                            /* tp_methods        */
@@ -473,10 +483,7 @@ static ImmutableSet *immutablecollections_immutableset(PyObject *self, PyObject 
         Py_INCREF(EMPY_SET);
         return EMPY_SET;
     } else {
-        ImmutableSet *immutableset = PyObject_GC_New(ImmutableSet, &ImmutableSetType);
-        immutableset->orderList = PyList_New(0);
-        immutableset->wrappedSet = PySet_New(NULL);
-        PyObject_GC_Track((PyObject *) immutableset);
+        ImmutableSet *immutableset = makeEmptySet();
 
         while (item != NULL) {
             if (!PySet_Contains(immutableset->wrappedSet, item)) {
@@ -525,6 +532,7 @@ static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(PyObject *s
     }
 
     immutablesetbuilder->orderKey = key;
+    immutablesetbuilder->in_weakreflist = NULL;
 
     PyObject_GC_Track((PyObject *) immutablesetbuilder);
 

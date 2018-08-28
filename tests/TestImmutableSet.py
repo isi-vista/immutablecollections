@@ -66,9 +66,13 @@ class TestImmutableSet(TestCase):
         ref = immutableset([1, 2, 3, 4, 5])
         self.assertEqual(ref, a.union(b))
 
-    @skip
     def test_basic_intersection(self):
         a = immutableset([1, 2, 3])
         b = immutableset([3, 4, 5])
         ref = immutableset([3])
         self.assertEqual(ref, a.intersection(b))
+
+    def foo(self):
+        meep = immutablesetbuilder()
+        meep.add(3)
+        meep.build()
