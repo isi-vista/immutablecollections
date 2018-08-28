@@ -166,10 +166,6 @@ static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) 
 
     ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
 
-    PyObject_Print(self, stdout, 0);
-    PyObject_Print(other, stdout, 0);
-    PyObject_Print(builder->wrappedSet, stdout, 0);
-
     PyObject *it;
     it = PyObject_GetIter(self);
     if (it == NULL) {
@@ -184,7 +180,6 @@ static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) 
     while (item != NULL) {
         int containmentCheck = PySequence_Contains(other, item);
         if (containmentCheck == 1) {
-            PyObject_Print(item, stdout, 0);
             ImmutableSetBuilder_add_internal(builder, item);
         }
         item = iternext(it);
@@ -193,8 +188,38 @@ static ImmutableSet *ImmutableSet_intersection(PyObject *self, PyObject *other) 
     // done with iterator
     Py_DECREF(it);
 
-    PyObject_Print(builder->orderList, stdout, 0);
-    PyObject_Print(builder->wrappedSet, stdout, 0);
+    ImmutableSet *ret = ImmutableSetBuilder_build(builder);
+    Py_DECREF(builder);
+    return ret;
+}
+
+static ImmutableSet *ImmutableSet_difference(PyObject *self, PyObject *other) {
+    // inefficient placeholder implementation
+    // TODO: check that other is set_like, after we sub-class ourselves from AbstractSet
+
+    ImmutableSetBuilder *builder = immutablecollections_immutablesetbuilder_internal();
+
+    PyObject *it;
+    it = PyObject_GetIter(self);
+    if (it == NULL) {
+        return NULL;
+    }
+
+    PyObject *(*iternext)(PyObject *);
+    iternext = *Py_TYPE(it)->tp_iternext;
+    PyObject *item = iternext(it);
+
+
+    while (item != NULL) {
+        int containmentCheck = PySequence_Contains(other, item);
+        if (containmentCheck == 0) {
+            ImmutableSetBuilder_add_internal(builder, item);
+        }
+        item = iternext(it);
+    }
+
+    // done with iterator
+    Py_DECREF(it);
 
     ImmutableSet *ret = ImmutableSetBuilder_build(builder);
     Py_DECREF(builder);
@@ -206,6 +231,8 @@ static PyMethodDef ImmutableSet_methods[] = {
                 "Gets the union of this set and the provided elements"},
         {"intersection", (PyCFunction) ImmutableSet_intersection, METH_O,
                 "Gets the intersection of this set and the provided set"},
+        {"difference",   (PyCFunction) ImmutableSet_difference,   METH_O,
+                "Gets the difference of this set and the provided set"},
         //{"tolist",      (PyCFunction)PVector_toList, METH_NOARGS, "Convert to list"},
         {NULL}
 };

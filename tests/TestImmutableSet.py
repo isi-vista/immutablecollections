@@ -72,7 +72,8 @@ class TestImmutableSet(TestCase):
         ref = immutableset([3])
         self.assertEqual(ref, a.intersection(b))
 
-    def foo(self):
-        meep = immutablesetbuilder()
-        meep.add(3)
-        meep.build()
+    def test_difference(self):
+        a = immutableset([1, 2, 3])
+        b = immutableset([3, 4, 5])
+        ref = immutableset([1, 2])
+        self.assertEqual(ref, a.difference(b))
