@@ -77,3 +77,9 @@ class TestImmutableSet(TestCase):
         b = immutableset([3, 4, 5])
         ref = immutableset([1, 2])
         self.assertEqual(ref, a.difference(b))
+
+    def test_repr(self):
+        self.assertEqual("i{3, 1, 2}", repr(immutableset([3, 1, 2])))
+
+    def test_str(self):
+        self.assertEqual("{3, 1, 2}", str(immutableset([3, 1, 2])))

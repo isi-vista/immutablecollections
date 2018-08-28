@@ -372,8 +372,12 @@ static PyObject *ImmutableSet_repr(ImmutableSet *self) {
         return NULL;
     }
 
-    PyObject *s = PyUnicode_FromFormat("%s%U%s", "i{", list_repr, "}");
+    PyObject *list_repr_no_brackets =
+            PyUnicode_Substring(list_repr, 1, PyUnicode_GetLength(list_repr) - 1);
+
+    PyObject *s = PyUnicode_FromFormat("%s%U%s", "i{", list_repr_no_brackets, "}");
     Py_DECREF(list_repr);
+    Py_DECREF(list_repr_no_brackets);
 
     return s;
 }
@@ -388,8 +392,12 @@ static PyObject *ImmutableSet_str(ImmutableSet *self) {
         return NULL;
     }
 
-    PyObject *s = PyUnicode_FromFormat("%s%U%s", "{", list_str, "}");
+    PyObject *list_str_no_brackets =
+            PyUnicode_Substring(list_str, 1, PyUnicode_GetLength(list_str) - 1);
+
+    PyObject *s = PyUnicode_FromFormat("%s%U%s", "{", list_str_no_brackets, "}");
     Py_DECREF(list_str);
+    Py_DECREF(list_str_no_brackets);
 
     return s;
 }
