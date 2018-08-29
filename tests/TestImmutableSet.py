@@ -129,35 +129,30 @@ class TestImmutableSet(TestCase):
     def test_bad_args(self):
         with self.assertRaises(TypeError):
             ImmutableSet.of(7)
-    #
-    # def test_init(self):
-    #     source = [1, 2, 3]
-    #     # Able to use a non-set iterable
-    #     set1 = ImmutableSet.of(source)
-    #     set2 = ImmutableSet.of(set(source))
-    #     self.assertEqual(set1, set2)
-    #
-    # def test_unhashable(self):
-    #     source = [[1, 2, 3]]
-    #     # Cannot create using unhashable values
-    #     with self.assertRaises(TypeError):
-    #         ImmutableSet.of(source)
-    #
+
+    def test_init(self):
+        source = [1, 2, 3]
+        # Able to use a non-set iterable
+        set1 = ImmutableSet.of(source)
+        set2 = ImmutableSet.of(set(source))
+        self.assertEqual(set1, set2)
+
+    def test_unhashable(self):
+        source = [[1, 2, 3]]
+        # Cannot create using unhashable values
+        with self.assertRaises(TypeError):
+            ImmutableSet.of(source)
+
     # def test_isinstance(self):
     #     set1 = ImmutableSet.of([1, 2, 3])
     #     # Note that this is collections.abc.Set, not typing.Set,
     #     # which is mutable
     #     self.assertTrue(isinstance(set1, Set))
     #
-    # def test_slots(self):
-    #     self.assertFalse(hasattr(ImmutableSet.of([1, 2, 3]), '__dict__'))
-    #
-    # def test_repr(self):
-    #     self.assertEqual("i{1, 2, 3}", repr(ImmutableSet.of([1, 2, 3, 2])))
-    #
-    # def test_str(self):
-    #     self.assertEqual("{1, 2, 3}", str(ImmutableSet.of([1, 2, 3, 2])))
-    #
+
+    def test_slots(self):
+        self.assertFalse(hasattr(ImmutableSet.of([1, 2, 3]), '__dict__'))
+
     # def test_type_testing(self):
     #     ImmutableSet.of([1, 2, 3], check_top_type_matches=int)
     #     with self.assertRaises(TypeError):
@@ -175,38 +170,16 @@ class TestImmutableSet(TestCase):
     #     with self.assertRaises(TypeError):
     #         ImmutableSet.of(unchecked_string_set, check_top_type_matches=int)
     #
-    # def test_as_list(self):
-    #     self.assertEqual(ImmutableList.of([3, 1, 2]), ImmutableSet.of([3, 1, 2]).as_list())
-    #
     # def test_require_ordered_input(self):
     #     with self.assertRaises(ValueError):
     #         ImmutableSet.of({"a", "b", "c"}, require_ordered_input=True)
     #         ImmutableSet.builder(require_ordered_input=True).add_all({"a", "b", "c"})
     #
-    # def test_order_irrelevant_for_equals_hash(self):
-    #     x = ImmutableSet.of(["known", "jump"])
-    #     y = ImmutableSet.of(["jump", "known"])
-    #     self.assertEqual(x, y)
-    #     self.assertEqual(hash(x), hash(y))
-    #
-    # def test_ordering(self):
-    #     self.assertEqual(ImmutableList.of(["a", "b", "c"]),
-    #                      ImmutableSet.builder(order_key=lambda x: x)
-    #                      .add_all(["b", "c", "a"]).build().as_list())
-    #
-    # def test_difference(self):
-    #     self.assertEqual(ImmutableSet.of(["a", "c"]),
-    #                      ImmutableSet.of(["a", "b", "c"]).difference(ImmutableSet.of(["b", "d"])))
-    #     self.assertEqual(ImmutableSet.of(["a", "c"]),
-    #                      ImmutableSet.of(["a", "b", "c"]) - ImmutableSet.of(["b", "d"]))
-    #
-    # def test_union(self):
-    #     self.assertEqual(ImmutableSet.of(["a", "c", "b"]),
-    #                      ImmutableSet.of(["a", "c"]).union(ImmutableSet.of(["b", "c"])) )
-    #
-    # @staticmethod
-    # def type_annotations() -> int:
-    #     # Just to check for mypy warnings
-    #     source = {1, 2, 3}
-    #     dict1 = ImmutableSet.of(source)
-    #     return next(iter(dict1))
+    def test_order_irrelevant_for_equals_hash(self):
+        x = ImmutableSet.of(["known", "jump"])
+        y = ImmutableSet.of(["jump", "known"])
+        self.assertEqual(x, y)
+        self.assertEqual(hash(x), hash(y))
+
+
+k
