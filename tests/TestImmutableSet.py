@@ -8,18 +8,18 @@ faulthandler.enable()
 
 class TestImmutableSet(TestCase):
     def test_set_construction(self):
-        immutableset([1, 2, 3])
+        ImmutableSet.of([1, 2, 3])
 
     @skip
     def testIsSet(self):
-        self.assertTrue(isinstance(immutableset([1,2,3]), AbstractSet))
+        self.assertTrue(isinstance(ImmutableSet.of([1, 2, 3]), AbstractSet))
 
     #def testIsSequence(self):
     #    self.assertTrue(isinstance(immutableset([1,2,3]), Sequence))
 
     def test_ordered_builder(self):
         sort_key = lambda x: x[1]
-        builder = immutablesetbuilder(order_key=sort_key)
+        builder = ImmutableSet.builder(order_key=sort_key)
         builder.add("hello")
         builder.add("hallo")
         built = builder.build()
@@ -37,23 +37,23 @@ class TestImmutableSet(TestCase):
         self.assertEqual(empty, empty3)
 
     def test_empty_is_singleton(self):
-        builder1 = immutablesetbuilder()
+        builder1 = ImmutableSet.builder()
         set1 = builder1.build()
-        builder2 = immutablesetbuilder()
+        builder2 = ImmutableSet.builder()
         set2 = builder2.build()
-        set3 = immutableset([])
-        set4 = immutableset([])
+        set3 = ImmutableSet.of([])
+        set4 = ImmutableSet.of([])
         self.assertIs(set1, set2)
         self.assertIs(set2, set3)
         self.assertIs(set3, set4)
 
     def test_basic_equality(self):
-        a = immutableset([1, 2, 3])
-        b = immutableset([3, 2, 1])
+        a = ImmutableSet.of([1, 2, 3])
+        b = ImmutableSet.of([3, 2, 1])
         self.assertEqual(a, b)
 
     def test_add_multiple(self):
-        builder = immutablesetbuilder()
+        builder = ImmutableSet.builder()
         builder.add(3)
         builder.add(2)
 
@@ -62,7 +62,7 @@ class TestImmutableSet(TestCase):
         self.assertEqual(ref, builder.build())
 
     def test_add_all(self):
-        builder = immutablesetbuilder()
+        builder = ImmutableSet.builder()
         builder.add(3)
         builder.add_all([2, 1])
 
@@ -71,28 +71,28 @@ class TestImmutableSet(TestCase):
         self.assertEqual(ref, builder.build())
 
     def test_basic_union(self):
-        a = immutableset([1, 2, 3])
-        b = immutableset([3, 4, 5])
-        ref = immutableset([1, 2, 3, 4, 5])
+        a = ImmutableSet.of([1, 2, 3])
+        b = ImmutableSet.of([3, 4, 5])
+        ref = ImmutableSet.of([1, 2, 3, 4, 5])
         self.assertEqual(ref, a.union(b))
 
     def test_basic_intersection(self):
-        a = immutableset([1, 2, 3])
-        b = immutableset([3, 4, 5])
-        ref = immutableset([3])
+        a = ImmutableSet.of([1, 2, 3])
+        b = ImmutableSet.of([3, 4, 5])
+        ref = ImmutableSet.of([3])
         self.assertEqual(ref, a.intersection(b))
 
     def test_difference(self):
-        a = immutableset([1, 2, 3])
-        b = immutableset([3, 4, 5])
-        ref = immutableset([1, 2])
+        a = ImmutableSet.of([1, 2, 3])
+        b = ImmutableSet.of([3, 4, 5])
+        ref = ImmutableSet.of([1, 2])
         self.assertEqual(ref, a.difference(b))
 
     def test_repr(self):
-        self.assertEqual("i{3, 1, 2}", repr(immutableset([3, 1, 2])))
+        self.assertEqual("i{3, 1, 2}", repr(ImmutableSet.of([3, 1, 2])))
 
     def test_str(self):
-        self.assertEqual("{3, 1, 2}", str(immutableset([3, 1, 2])))
+        self.assertEqual("{3, 1, 2}", str(ImmutableSet.of([3, 1, 2])))
 
     # def test_empty_singleton(self):
     #     empty1 = ImmutableSet.empty()
