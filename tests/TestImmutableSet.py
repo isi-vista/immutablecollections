@@ -18,11 +18,10 @@ class TestImmutableSet(TestCase):
         self.assertTrue(1 in set1)
         self.assertFalse(4 in set1)
 
-    # def test_return_identical_immutable(self):
-    #     set1 = ImmutableSet.of([1, 2, 3])
-    #     set2 = ImmutableSet.of(set1)
-    #     self.assertIs(set1, set2)
-
+    def test_return_identical_immutable(self):
+        set1 = ImmutableSet.of([1, 2, 3])
+        set2 = ImmutableSet.of(set1)
+        self.assertIs(set1, set2)
 
     @skip
     def testIsSet(self):

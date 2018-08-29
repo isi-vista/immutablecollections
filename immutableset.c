@@ -516,6 +516,11 @@ static ImmutableSet *immutablecollections_immutableset(PyObject *self, PyObject 
         return NULL;
     }
 
+    if (PyObject_IsInstance(argObj, &ImmutableSetType)) {
+        Py_INCREF(argObj);
+        return argObj;
+    }
+
     it = PyObject_GetIter(argObj);
     if (it == NULL) {
         return NULL;
