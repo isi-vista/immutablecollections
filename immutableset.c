@@ -39,6 +39,7 @@ static ImmutableSet *makeEmptySet() {
 }
 
 // pre-declare some functions
+static ImmutableSet *immutablecollections_immutableset(PyObject *self, PyObject *args);
 static ImmutableSetBuilder *immutablecollections_immutablesetbuilder_internal();
 
 static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(
@@ -113,6 +114,14 @@ static void ImmutableSetBuilder_dealloc(ImmutableSetBuilder *self) {
     debug("end builder dealloc\n");
 }
 
+static ImmutableSet *ImmutableSet_empty(ImmutableSet *selfWillBeNull) {
+    Py_IncRef((PyObject *) EMPY_SET);
+    return EMPY_SET;
+}
+
+static ImmutableSet *ImmutableSet_of(ImmutableSet *selfWillBeNull, PyObject *args) {
+    return immutablecollections_immutableset((PyObject *) selfWillBeNull, args);
+}
 
 static long ImmutableSet_hash(ImmutableSet* self) {
     return PyObject_Hash(self->wrappedSet);
@@ -227,6 +236,9 @@ static ImmutableSet *ImmutableSet_difference(PyObject *self, PyObject *other) {
 }
 
 static PyMethodDef ImmutableSet_methods[] = {
+        {"empty", (PyCFunction) ImmutableSet_empty, METH_NOARGS | METH_STATIC},
+        {"of", (PyCFunction) ImmutableSet_of, METH_VARARGS | METH_STATIC},
+        {"builder", (PyCFunction) immutablecollections_immutablesetbuilder, METH_KEYWORDS | METH_VARARGS | METH_STATIC},
         {"union",        (PyCFunction) ImmutableSet_union,        METH_O,
                 "Gets the union of this set and the provided elements"},
         {"intersection", (PyCFunction) ImmutableSet_intersection, METH_O,
@@ -405,6 +417,7 @@ static PyObject *ImmutableSet_str(ImmutableSet *self) {
 static int ImmutableSet_traverse(ImmutableSet *o, visitproc visit, void *arg) {
     Py_VISIT(o->orderList);
     Py_VISIT(o->wrappedSet);
+    return 0;
 }
 
 static PyObject *ImmutableSet_richcompare(ImmutableSet *v, PyObject *w, int op) {
@@ -565,6 +578,7 @@ static ImmutableSetBuilder *immutablecollections_immutablesetbuilder(PyObject *s
         }
         Py_INCREF(key);
     }
+
 
     immutablesetbuilder->orderKey = key;
     immutablesetbuilder->in_weakreflist = NULL;
