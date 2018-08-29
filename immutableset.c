@@ -124,7 +124,28 @@ static ImmutableSet *ImmutableSet_of(ImmutableSet *selfWillBeNull, PyObject *arg
 }
 
 static long ImmutableSet_hash(ImmutableSet* self) {
-    return PyObject_Hash(self->wrappedSet);
+    // the hashcode is the sum of the hashcodes of the set elements
+    long sum = 0;
+
+    PyObject *it;
+    it = PyObject_GetIter((PyObject *) self);
+    if (it == NULL) {
+        return NULL;
+    }
+
+    PyObject *(*iternext)(PyObject *);
+    iternext = *Py_TYPE(it)->tp_iternext;
+    PyObject *item = iternext(it);
+
+    while (item != NULL) {
+        sum += PyObject_Hash(item);
+        item = iternext(it);
+    }
+
+    // done with iterator
+    Py_DECREF(it);
+
+    return sum;
 }
 
 static Py_ssize_t ImmutableSet_len(ImmutableSet* self) {

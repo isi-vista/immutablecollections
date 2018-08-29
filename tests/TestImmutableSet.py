@@ -107,26 +107,19 @@ class TestImmutableSet(TestCase):
     def test_str(self):
         self.assertEqual("{3, 1, 2}", str(ImmutableSet.of([3, 1, 2])))
 
-    #
-    #
-    # def test_singleton_empty(self):
-    #     empty = ImmutableSet.empty()
-    #     empty2 = ImmutableSet.empty()
-    #     self.assertIs(empty, empty2)
-    #
-    # def test_hash_eq(self):
-    #     set1 = ImmutableSet.of({1, 2, 3})
-    #     set2 = ImmutableSet.of({1, 2, 3})
-    #     set3 = ImmutableSet.of({1, 2})
-    #
-    #     self.assertEqual(set1, set2)
-    #     self.assertNotEqual(set1, set3)
-    #
-    #     val = object()
-    #     d = {set1: val}
-    #     self.assertEqual(d[set2], val)
-    #     self.assertEqual(hash(set2), hash(set1))
-    #     self.assertTrue(set3 not in d)
+    def test_hash_eq(self):
+        set1 = ImmutableSet.of({1, 2, 3})
+        set2 = ImmutableSet.of({1, 2, 3})
+        set3 = ImmutableSet.of({1, 2})
+
+        self.assertEqual(set1, set2)
+        self.assertNotEqual(set1, set3)
+
+        val = object()
+        d = {set1: val}
+        self.assertEqual(d[set2], val)
+        self.assertEqual(hash(set2), hash(set1))
+        self.assertTrue(set3 not in d)
     #
     # def test_immutable(self):
     #     source = {1, 2, 3}
