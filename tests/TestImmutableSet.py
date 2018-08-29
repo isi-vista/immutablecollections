@@ -10,11 +10,25 @@ class TestImmutableSet(TestCase):
     def test_set_construction(self):
         ImmutableSet.of([1, 2, 3])
 
+    def test_basic(self):
+        source = {1, 2, 3}
+        set1 = ImmutableSet.of(source)
+        self.assertEqual(set(set1), source)
+        self.assertEqual(len(set1), 3)
+        self.assertTrue(1 in set1)
+        self.assertFalse(4 in set1)
+
+    # def test_return_identical_immutable(self):
+    #     set1 = ImmutableSet.of([1, 2, 3])
+    #     set2 = ImmutableSet.of(set1)
+    #     self.assertIs(set1, set2)
+
+
     @skip
     def testIsSet(self):
         self.assertTrue(isinstance(ImmutableSet.of([1, 2, 3]), AbstractSet))
 
-    #def testIsSequence(self):
+    # def testIsSequence(self):
     #    self.assertTrue(isinstance(immutableset([1,2,3]), Sequence))
 
     def test_ordered_builder(self):
@@ -94,27 +108,7 @@ class TestImmutableSet(TestCase):
     def test_str(self):
         self.assertEqual("{3, 1, 2}", str(ImmutableSet.of([3, 1, 2])))
 
-    # def test_empty_singleton(self):
-    #     empty1 = ImmutableSet.empty()
-    #     empty2 = ImmutableSet.empty()
-    #     self.assertIs(empty1, empty2)
-    #     empty3 = ImmutableSet.builder().build()
-    #     self.assertIs(empty1, empty3)
-    #     empty4 = ImmutableSet.of([])
-    #     self.assertIs(empty1, empty4)
     #
-    # def test_basic(self):
-    #     source = {1, 2, 3}
-    #     set1 = ImmutableSet.of(source)
-    #     self.assertEqual(set(set1), source)
-    #     self.assertEqual(len(set1), 3)
-    #     self.assertTrue(1 in set1)
-    #     self.assertFalse(4 in set1)
-    #
-    # def test_return_identical_immutable(self):
-    #     set1 = ImmutableSet.of([1, 2, 3])
-    #     set2 = ImmutableSet.of(set1)
-    #     self.assertIs(set1, set2)
     #
     # def test_singleton_empty(self):
     #     empty = ImmutableSet.empty()
