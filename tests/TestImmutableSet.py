@@ -126,9 +126,9 @@ class TestImmutableSet(TestCase):
             # noinspection PyArgumentList
             ImmutableSet([1, 2, 3])
 
-    # def test_bad_args(self):
-    #     with self.assertRaises(TypeError):
-    #         ImmutableSet.of(7)
+    def test_bad_args(self):
+        with self.assertRaises(TypeError):
+            ImmutableSet.of(7)
     #
     # def test_init(self):
     #     source = [1, 2, 3]
