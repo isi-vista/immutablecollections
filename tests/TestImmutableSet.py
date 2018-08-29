@@ -120,22 +120,12 @@ class TestImmutableSet(TestCase):
         self.assertEqual(d[set2], val)
         self.assertEqual(hash(set2), hash(set1))
         self.assertTrue(set3 not in d)
-    #
-    # def test_immutable(self):
-    #     source = {1, 2, 3}
-    #     set1 = ImmutableSet.of(source)
-    #     with self.assertRaises(AttributeError):
-    #         # noinspection PyUnresolvedReferences
-    #         set1.add(4)
-    #     # Update doesn't affect original
-    #     source.add(4)
-    #     self.assertNotEqual(ImmutableSet.of(source), set1)
-    #
-    # def test_cannot_init(self):
-    #     with self.assertRaises(TypeError):
-    #         # noinspection PyArgumentList
-    #         ImmutableSet([1, 2, 3])
-    #
+
+    def test_cannot_init(self):
+        with self.assertRaises(TypeError):
+            # noinspection PyArgumentList
+            ImmutableSet([1, 2, 3])
+
     # def test_bad_args(self):
     #     with self.assertRaises(TypeError):
     #         ImmutableSet.of(7)
