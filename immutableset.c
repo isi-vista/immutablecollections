@@ -256,6 +256,25 @@ static ImmutableSet *ImmutableSet_difference(PyObject *self, PyObject *other) {
     return ret;
 }
 
+static PyObject *ImmutableSet_pickle_reduce(ImmutableSet *self) {
+
+    PyObject *module = PyImport_ImportModule("immutablecollections");
+    PyObject *immutableSetClass = PyObject_GetAttrString(module, "ImmutableSet");
+    PyObject *ofMethod = PyObject_GetAttrString(immutableSetClass, "of");
+    Py_DECREF(module);
+    Py_DECREF(immutableSetClass);
+
+    PyObject *arg_tuple = PyTuple_New(1);
+    Py_INCREF(self->orderList);
+    PyTuple_SET_ITEM(arg_tuple, 0, self->orderList);
+
+    PyObject *result_tuple = PyTuple_New(2);
+    PyTuple_SET_ITEM(result_tuple, 0, ofMethod);
+    PyTuple_SET_ITEM(result_tuple, 1, arg_tuple);
+
+    return result_tuple;
+}
+
 static PyMethodDef ImmutableSet_methods[] = {
         {"empty", (PyCFunction) ImmutableSet_empty, METH_NOARGS | METH_STATIC},
         {"of", (PyCFunction) ImmutableSet_of, METH_VARARGS | METH_STATIC},
@@ -266,6 +285,7 @@ static PyMethodDef ImmutableSet_methods[] = {
                 "Gets the intersection of this set and the provided set"},
         {"difference",   (PyCFunction) ImmutableSet_difference,   METH_O,
                 "Gets the difference of this set and the provided set"},
+        {"__reduce__", (PyCFunction) ImmutableSet_pickle_reduce, METH_NOARGS, "Support pickling"},
         //{"tolist",      (PyCFunction)PVector_toList, METH_NOARGS, "Convert to list"},
         {NULL}
 };

@@ -1,3 +1,4 @@
+import pickle
 from typing import Sequence, AbstractSet
 from unittest import TestCase, skip
 import faulthandler
@@ -181,5 +182,8 @@ class TestImmutableSet(TestCase):
         self.assertEqual(x, y)
         self.assertEqual(hash(x), hash(y))
 
-
-k
+    def test_pickle(self):
+        original = ImmutableSet.of([3, 1, 2])
+        pickled = pickle.dumps(original)
+        unpickled = pickle.loads(pickled)
+        self.assertEqual(original, unpickled)
