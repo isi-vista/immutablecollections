@@ -1,7 +1,7 @@
 from collections.abc import Set
 from unittest import TestCase
 
-from flexnlp.utils.immutablecollections import ImmutableSet, ImmutableList
+from flexnlp.utils.immutablecollections import ImmutableList, ImmutableSet
 
 
 class TestImmutableSet(TestCase):
@@ -147,7 +147,22 @@ class TestImmutableSet(TestCase):
 
     def test_union(self):
         self.assertEqual(ImmutableSet.of(["a", "c", "b"]),
-                         ImmutableSet.of(["a", "c"]).union(ImmutableSet.of(["b", "c"])) )
+                         ImmutableSet.of(["a", "c"]).union(ImmutableSet.of(["b", "c"])))
+
+    def test_count(self):
+        s = ImmutableSet.of([1, 2, 3, 3, 2, 1])
+        self.assertEqual(1, s.count(2))
+        self.assertEqual(0, s.count(4))
+
+    def test_reversed(self):
+        s = ImmutableSet.of(["b", "a", "c", "b"])
+        self.assertEqual(["c", "a", "b"], list(reversed(s)))
+
+    def test_index(self):
+        s = ImmutableSet.of(["a", "c", "b", "c"])
+        self.assertEqual(1, s.index("c"))
+        with self.assertRaises(ValueError):
+            s.index("z")
 
     @staticmethod
     def type_annotations() -> int:
