@@ -168,6 +168,21 @@ class TestImmutableSet(TestCase):
         self.assertTrue(meep >= bar)
         self.assertTrue(ImmutableSet.of(bar) >= bar)
 
+    def test_count(self):
+        s = ImmutableSet.of([1, 2, 3, 3, 2, 1])
+        self.assertEqual(1, s.count(2))
+        self.assertEqual(0, s.count(4))
+
+    def test_reversed(self):
+        s = ImmutableSet.of(["b", "a", "c", "b"])
+        self.assertEqual(["c", "a", "b"], list(reversed(s)))
+
+    def test_index(self):
+        s = ImmutableSet.of(["a", "c", "b", "c"])
+        self.assertEqual(1, s.index("c"))
+        with self.assertRaises(ValueError):
+            s.index("z")
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings
