@@ -1,9 +1,8 @@
 from collections import Mapping
 from unittest import TestCase
 
-from flexnlp.utils.immutablecollections import ImmutableSet
-from flexnlp.utils.immutablecollections.immutablemultidict import ImmutableListMultiDict, \
-    ImmutableSetMultiDict
+from immutablecollections import ImmutableSet
+from immutablecollections.immutablemultidict import ImmutableListMultiDict,  ImmutableSetMultiDict
 
 
 class TestImmutableSetMultiDict(TestCase):

@@ -5,8 +5,7 @@ from typing import AbstractSet, Any, Callable, Container, FrozenSet, Generic, It
 import attr
 from attr import attrib, attrs, validators
 
-from flexnlp.utils import preconditions
-from flexnlp.utils.immutablecollections import immutablecollection, immutablelist
+from immutablecollections import immutablecollection, immutablelist
 
 T = TypeVar('T')  # pylint:disable=invalid-name
 # necessary because inner classes cannot share typevars
@@ -71,10 +70,10 @@ class ImmutableSet(Generic[T],
             if check_top_type_matches:
                 # we assume each sub-class provides _top_level_type
                 if seq._top_level_type:  # type: ignore
-                    preconditions.check_issubclass(  # type: ignore
+                    _check_issubclass(  # type: ignore
                         seq._top_level_type, check_top_type_matches)  # type: ignore
                 else:
-                    preconditions.check_all_isinstance(seq, check_top_type_matches)
+                    _check_all_isinstance(seq, check_top_type_matches)
             return seq
         else:
             return (ImmutableSet.builder(check_top_type_matches=check_top_type_matches,
@@ -109,7 +108,7 @@ class ImmutableSet(Generic[T],
         If check top level types is provided, all elements of both sets must match the specified
         type.
         """
-        preconditions.check_isinstance(other, AbstractSet)
+        _check_isinstance(other, AbstractSet)
         return (ImmutableSet.builder(check_top_type_matches)
                 .add_all(self).add_all(other).build())
 
@@ -131,7 +130,7 @@ class ImmutableSet(Generic[T],
         should have already been in this set, so you can type check this set itself if you are
         concerned.
         """
-        preconditions.check_isinstance(other, AbstractSet)
+        _check_isinstance(other, AbstractSet)
         return (ImmutableSet.builder(check_top_type_matches=self._top_level_type)  # type: ignore
                 .add_all(x for x in self if x in other).build())
 
@@ -430,3 +429,20 @@ class _SingletonImmutableSet(ImmutableSet[T]):
 
 # Singleton instance for empty
 _EMPTY: ImmutableSet = _FrozenSetBackedImmutableSet((), (), None)
+
+# copied from VistaUtils' precondtions.py to avoid a dependency loop
+def _check_issubclass(item, classinfo: _ClassInfo):
+    if not issubclass(item, classinfo):
+        raise TypeError('Expected subclass of type {!r} but got {!r}'.format(classinfo, type(item)))
+    return item
+
+def _check_all_isinstance(items: Iterable[Any], classinfo: _ClassInfo):
+    for item in items:
+        check_isinstance(item, classinfo)
+
+def _check_isinstance(item: T, classinfo: _ClassInfo) -> T:
+    if not isinstance(item, classinfo):
+        raise TypeError('Expected instance of type {!r} but got type {!r} for {!r}'
+                        .format(classinfo, type(item), item))
+    return item
+

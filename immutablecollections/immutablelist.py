@@ -3,7 +3,7 @@ from typing import Generic, Iterable, Iterator, List, Sequence, Sized, Tuple, Ty
 
 from attr import attrib, attrs
 
-from flexnlp.utils.immutablecollections.immutablecollection import ImmutableCollection
+from immutablecollections.immutablecollection import ImmutableCollection
 
 T = TypeVar('T')  # pylint:disable=invalid-name
 T2 = TypeVar('T2')

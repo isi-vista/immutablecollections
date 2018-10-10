@@ -7,10 +7,9 @@ from typing import AbstractSet, Any, Callable, Collection, Generic, Iterable, It
 from attr import attrib, attrs
 from frozendict import frozendict
 
-from flexnlp.utils.immutablecollections import ImmutableList, ImmutableSet
-from flexnlp.utils.immutablecollections.immutablecollection import ImmutableCollection
-from flexnlp.utils.immutablecollections.immutablelist import EMPTY_IMMUTABLE_LIST
-from flexnlp.utils.preconditions import check_isinstance
+from immutablecollections import ImmutableList, ImmutableSet
+from immutablecollections.immutablecollection import ImmutableCollection
+from immutablecollections.immutablelist import EMPTY_IMMUTABLE_LIST
 
 KT = TypeVar('KT')
 VT = TypeVar('VT')
@@ -233,7 +232,7 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
 
 def _freeze_set_multidict(x: Mapping[KT, Iterable[VT]]) -> Mapping[KT, ImmutableSet[VT]]:
     for (_, v) in x.items():
-        check_isinstance(v, Iterable)
+        _check_isinstance(v, Iterable)
     return frozendict({k: ImmutableSet.of(v) for (k, v) in x.items()})
 
 
@@ -406,7 +405,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
 
 def _freeze_list_multidict(x: Mapping[KT, Iterable[VT]]) -> Mapping[KT, ImmutableList[VT]]:
     for (_, v) in x.items():
-        check_isinstance(v, Iterable)
+        _check_isinstance(v, Iterable)
     return frozendict({k: ImmutableList.of(v) for (k, v) in x.items()})
 
 
@@ -432,3 +431,11 @@ class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
 
 # Singleton instance for empty
 _EMPTY_IMMUTABLE_MULTIDICT: ImmutableListMultiDict = FrozenDictBackedImmutableListMultiDict({})
+
+
+# copied from VistaUtils' preconditions.py to avoid dependency loop
+def _check_isinstance(item: T, classinfo: _ClassInfo) -> T:
+    if not isinstance(item, classinfo):
+        raise TypeError('Expected instance of type {!r} but got type {!r} for {!r}'
+                        .format(classinfo, type(item), item))
+    return item

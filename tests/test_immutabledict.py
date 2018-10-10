@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from unittest import TestCase
 
-from flexnlp.utils.immutablecollections import ImmutableDict
+from immutablecollections import ImmutableDict
 
 
 class TestImmutableDict(TestCase):

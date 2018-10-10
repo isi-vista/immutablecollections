@@ -5,7 +5,7 @@ from typing import Iterable, Mapping, TypeVar, Tuple, Iterator, Union, Generic, 
 from attr import attrs, attrib
 from frozendict import frozendict
 
-from flexnlp.utils.immutablecollections.immutablecollection import ImmutableCollection
+from immutablecollections.immutablecollection import ImmutableCollection
 
 KT = TypeVar('KT')
 VT = TypeVar('VT')

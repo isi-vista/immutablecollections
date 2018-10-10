@@ -29,8 +29,8 @@ equal.
 # noinspection PyUnresolvedReferences
 from attr.exceptions import FrozenInstanceError
 
-from flexnlp.utils.immutablecollections.immutablecollection import ImmutableCollection
-from flexnlp.utils.immutablecollections.immutabledict import ImmutableDict
-from flexnlp.utils.immutablecollections.immutablelist import ImmutableList
-from flexnlp.utils.immutablecollections.immutableset import ImmutableSet
-from flexnlp.utils.immutablecollections.utils import ImmutableMixin
+from immutablecollections.immutablecollection import ImmutableCollection
+from immutablecollections.immutabledict import ImmutableDict
+from immutablecollections.immutablelist import ImmutableList
+from immutablecollections.immutableset import ImmutableSet
+from immutablecollections.utils import ImmutableMixin
