@@ -13,7 +13,7 @@ setup(name='immutablecollections',
       # 3.6 and up, but not Python 4
       python_requires='~=3.6',
       install_requires=[
-          'attrs>=17.3.0',
+          'attrs>=18.2.0',
           'frozendict',
           'typing_extensions',
           'sortedcontainers>=1.5.9'
