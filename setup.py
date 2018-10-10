@@ -3,15 +3,13 @@
 from distutils.core import setup
 from setuptools import find_packages
 
-export_packages =  find_packages(where='.', include=('immutablecollections'))
-
 setup(name='immutablecollections',
-      version='0.1.0',
+      version='0.1.1',
       author='Ruan Gabbard <gabbard@isi.edi> and Constantine Lignos <lignos@isi.edu>',
       author_email='gabbard@isi.edu',
       description='Immutable Collections (inspired by Google Guava)',
       url='https://github.com/isi-vista/immutablecollections',
-      packages=export_packages,
+      packages=['immutablecollections'],
       # 3.6 and up, but not Python 4
       python_requires='~=3.6',
       install_requires=[
