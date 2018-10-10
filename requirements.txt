@@ -1,0 +1,13 @@
+# core requirements
+attrs==18.2.0
+frozendict==1.2
+sortedcontainers==1.5.10
+typing_extensions  # for Protocol
+
+# extras for development
+nose
+nose-exclude
+coverage
+pylint==1.8.2
+flake8==3.5.0
+mypy==0.620
