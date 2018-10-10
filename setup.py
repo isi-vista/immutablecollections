@@ -4,8 +4,8 @@ from distutils.core import setup
 from setuptools import find_packages
 
 setup(name='immutablecollections',
-      version='0.1.1',
-      author='Ruan Gabbard <gabbard@isi.edi> and Constantine Lignos <lignos@isi.edu>',
+      version='0.1.2',
+      author='Ryan Gabbard <gabbard@isi.edu> and Constantine Lignos <lignos@isi.edu>',
       author_email='gabbard@isi.edu',
       description='Immutable Collections (inspired by Google Guava)',
       url='https://github.com/isi-vista/immutablecollections',
