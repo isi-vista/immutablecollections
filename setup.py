@@ -7,7 +7,10 @@ export_packages =  find_packages(where='.', include=('immutablecollections'))
 
 setup(name='immutablecollections',
       version='0.1.0',
+      author='Ruan Gabbard <gabbard@isi.edi> and Constantine Lignos <lignos@isi.edu>',
+      author_email='gabbard@isi.edu',
       description='Immutable Collections (inspired by Google Guava)',
+      url='https://github.com/isi-vista/immutablecollections',
       packages=export_packages,
       # 3.6 and up, but not Python 4
       python_requires='~=3.6',
@@ -17,4 +20,9 @@ setup(name='immutablecollections',
           'typing_extensions',
           'sortedcontainers>=1.5.9'
       ],
+      classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ]
       )
