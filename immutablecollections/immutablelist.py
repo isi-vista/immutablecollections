@@ -5,7 +5,7 @@ from attr import attrib, attrs
 
 from flexnlp.utils.immutablecollections.immutablecollection import ImmutableCollection
 
-T = TypeVar('T')
+T = TypeVar('T')  # pylint:disable=invalid-name
 T2 = TypeVar('T2')
 
 

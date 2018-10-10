@@ -8,7 +8,7 @@ from attr import attrib, attrs, validators
 from flexnlp.utils import preconditions
 from flexnlp.utils.immutablecollections import immutablecollection, immutablelist
 
-T = TypeVar('T')
+T = TypeVar('T')  # pylint:disable=invalid-name
 # necessary because inner classes cannot share typevars
 T2 = TypeVar('T2')  # pylint:disable=invalid-name
 SelfType = TypeVar('SelfType')  # pylint:disable=invalid-name
