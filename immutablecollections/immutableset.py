@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import AbstractSet, Any, Callable, Container, FrozenSet, Generic, Iterable, Iterator, \
-    List, Optional, Sequence, Type, TypeVar
+    List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 import attr
 from attr import attrib, attrs, validators
@@ -431,18 +431,22 @@ class _SingletonImmutableSet(ImmutableSet[T]):
 _EMPTY: ImmutableSet = _FrozenSetBackedImmutableSet((), (), None)
 
 # copied from VistaUtils' precondtions.py to avoid a dependency loop
+_ClassInfo = Union[type, Tuple[Union[type, Tuple], ...]]  # pylint:disable=invalid-name
+
+
 def _check_issubclass(item, classinfo: _ClassInfo):
     if not issubclass(item, classinfo):
         raise TypeError('Expected subclass of type {!r} but got {!r}'.format(classinfo, type(item)))
     return item
 
+
 def _check_all_isinstance(items: Iterable[Any], classinfo: _ClassInfo):
     for item in items:
-        check_isinstance(item, classinfo)
+        _check_isinstance(item, classinfo)
+
 
 def _check_isinstance(item: T, classinfo: _ClassInfo) -> T:
     if not isinstance(item, classinfo):
         raise TypeError('Expected instance of type {!r} but got type {!r} for {!r}'
                         .format(classinfo, type(item), item))
     return item
-
