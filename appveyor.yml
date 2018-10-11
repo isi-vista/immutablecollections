@@ -1,0 +1,13 @@
+image: ubuntu
+stack: python 3.6
+
+# we build manually in the install step
+build: off
+
+build_script:
+- pip install -r requirements.txt
+- make precommit
+
+test_script:
+- make test
+
