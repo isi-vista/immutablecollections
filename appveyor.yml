@@ -10,6 +10,6 @@ build_script:
 - make precommit
 
 test_script:
-- make test
+- make test coverage
 - codecov
 
