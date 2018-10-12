@@ -3,8 +3,13 @@
 from distutils.core import setup
 from setuptools import find_packages
 
+from os.path import abspath, dirname, join
+
+with open(join(dirname(abspath(__file__)), 'vistautils', 'version.py')) as version_file:
+    exec(compile(version_file.read(), "version.py", 'exec'))
+
 setup(name='immutablecollections',
-      version='0.1.2',
+      version=version,
       author='Ryan Gabbard <gabbard@isi.edu> and Constantine Lignos <lignos@isi.edu>',
       author_email='gabbard@isi.edu',
       description='Immutable Collections (inspired by Google Guava)',

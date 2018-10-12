@@ -34,3 +34,6 @@ from immutablecollections.immutabledict import ImmutableDict
 from immutablecollections.immutablelist import ImmutableList
 from immutablecollections.immutableset import ImmutableSet
 from immutablecollections.utils import ImmutableMixin
+
+from vistautils.version import version as __version__
+
