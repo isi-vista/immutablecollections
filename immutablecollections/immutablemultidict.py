@@ -437,6 +437,7 @@ _EMPTY_IMMUTABLE_MULTIDICT: ImmutableListMultiDict = FrozenDictBackedImmutableLi
 _T = TypeVar('_T')
 _ClassInfo = Union[type, Tuple[Union[type, Tuple], ...]]   # pylint:disable=invalid-name
 
+
 def _check_isinstance(item: _T, classinfo: _ClassInfo) -> _T:
     if not isinstance(item, classinfo):
         raise TypeError('Expected instance of type {!r} but got type {!r} for {!r}'
