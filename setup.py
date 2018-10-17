@@ -5,10 +5,12 @@ from setuptools import find_packages
 
 from os.path import abspath, dirname, join
 
-with open(join(dirname(abspath(__file__)), 'vistautils', 'version.py')) as version_file:
+_name = 'immutablecollections'
+
+with open(join(dirname(abspath(__file__)), _name, 'version.py')) as version_file:
     exec(compile(version_file.read(), "version.py", 'exec'))
 
-setup(name='immutablecollections',
+setup(name=_name,
       version=version,
       author='Ryan Gabbard <gabbard@isi.edu> and Constantine Lignos <lignos@isi.edu>',
       author_email='gabbard@isi.edu',
