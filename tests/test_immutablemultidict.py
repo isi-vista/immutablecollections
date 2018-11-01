@@ -67,6 +67,20 @@ class TestImmutableSetMultiDict(TestCase):
         # len's implementation often does caching, so test it works twice
         self.assertEqual(4, len(x))
 
+    def test_inversion(self):
+        x = ImmutableSetMultiDict.of({1: [2, 2, 3, 6], 4: [5, 6]})
+        # when you start from a set multidict, your inverses as a list
+        # and set multidict both contain the same items, since there
+        # are no duplicate mappings in the source
+        reference_set_based = ImmutableSetMultiDict.of({
+            2: [1], 3: [1], 5: [4], 6: [1, 4]
+        })
+        reference_list_based = ImmutableListMultiDict.of({
+            2: [1], 3: [1], 5: [4], 6: [1, 4]
+        })
+        self.assertEqual(reference_set_based, x.invert_to_set_multidict())
+        self.assertEqual(reference_list_based, x.invert_to_list_multidict())
+
 
 class TestImmutableListMultiDict(TestCase):
     def test_empty(self):
@@ -163,4 +177,17 @@ class TestImmutableListMultiDict(TestCase):
         self.assertEqual(5, len(x))
         # len's implementation often does caching, so test it works twice
         self.assertEqual(5, len(x))
+
+    def test_inversion(self):
+        x = ImmutableListMultiDict.of({1: [2, 2, 3, 6], 4: [5, 6]})
+        reference_set_based = ImmutableSetMultiDict.of({
+            2: [1], 3: [1], 5: [4], 6: [1, 4]
+        })
+        # 2->1 appears twice because 1->2 appears twice in the source
+        reference_list_based = ImmutableListMultiDict.of({
+            2: [1, 1], 3: [1], 5: [4], 6: [1, 4]
+        })
+        self.assertEqual(reference_set_based, x.invert_to_set_multidict())
+        self.assertEqual(reference_list_based, x.invert_to_list_multidict())
+
 

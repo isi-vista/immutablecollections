@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, ABC
 from collections import defaultdict
 from typing import AbstractSet, Any, Callable, Collection, Generic, Iterable, Iterator, Mapping, \
     MutableMapping, Optional, Tuple, TypeVar, Union, \
@@ -79,6 +79,44 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
 
     def __iter__(self) -> Iterator[KT]:
         return self.as_dict().__iter__()
+
+    def invert_to_list_multidict(self) -> 'ImmutableListMultiDict[VT, KT]':
+        """
+        Get the inverse of this multidict as a list multidict.
+
+        The returned ``ImmutableListMultiDict`` will contain `(v, k)` one time for each
+        key-value pair `(k, v)` in this multidict.
+        """
+        sink: ImmutableListMultiDict.Builder[VT, KT] = ImmutableListMultiDict.builder()
+        self._invert_to(sink)
+        return sink.build()
+
+    def invert_to_set_multidict(self) -> 'ImmutableSetMultiDict[VT, KT]':
+        """
+        Get the inverse of this multidict as a set multidict.
+
+        The returned ``ImmutableSetMultiDict`` will contain `(v, k)` if and only if
+        `(k, v)` is a key-value pair in this multidict.
+        """
+        sink: ImmutableSetMultiDict.Builder[VT, KT] = ImmutableSetMultiDict.builder()
+        self._invert_to(sink)
+        return sink.build()
+
+    def _invert_to(self, sink: 'ImmutableMultiDict.Builder[VT, KT]') -> None:
+        for (k, v) in self.items():
+            sink.put(v, k)
+
+    class Builder(ABC, Generic[KT2, VT2]):
+        @abstractmethod
+        def put(self: SelfType, key: KT2, value: VT2) -> SelfType:
+            """
+            Add a mapping from ``key`` to ``value``
+            """
+
+        def build(self) -> 'ImmutableMultiDict[KT2, VT2]':
+            """
+            Get a multidict with all key-value pairs given to this builder.
+            """
 
 
 # needs tests: issue #127
@@ -177,7 +215,7 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         # need the "i" prefix they add with repr
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
-    class Builder(Generic[KT2, VT2]):
+    class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
         def __init__(self, *, source: Optional['ImmutableMultiDict[KT2,VT2]'] = None,
                      order_key: Callable[[VT2], Any] = None) -> None:
             self._dict: MutableMapping[KT2, ImmutableSet.Builder[VT2]] = defaultdict(
@@ -351,7 +389,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         # need the "i" prefix they add with repr
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
-    class Builder(Generic[KT2, VT2]):
+    class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
         def __init__(self, *, source: Optional['ImmutableMultiDict[KT2,VT2]'] = None) -> None:
             self._dict: MutableMapping[KT2, ImmutableList.Builder[VT2]] = defaultdict(
                 ImmutableList.builder)
