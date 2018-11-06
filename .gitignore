@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+#CLion
+.idea/
+*.iml
+
+#CMake
+cmake-build-debug/
