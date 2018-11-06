@@ -1,22 +1,31 @@
 from abc import ABCMeta
-from typing import Iterable, Mapping, TypeVar, Tuple, Iterator, Union, Generic, Callable, \
-    MutableMapping
+from typing import (
+    Iterable,
+    Mapping,
+    TypeVar,
+    Tuple,
+    Iterator,
+    Union,
+    Generic,
+    Callable,
+    MutableMapping,
+)
 
 from attr import attrs, attrib
 from frozendict import frozendict
 
 from immutablecollections.immutablecollection import ImmutableCollection
 
-KT = TypeVar('KT')
-VT = TypeVar('VT')
+KT = TypeVar("KT")
+VT = TypeVar("VT")
 IT = Tuple[KT, VT]
 
 # cannot share type variables between outer and inner classes
-KT2 = TypeVar('KT2')
-VT2 = TypeVar('VT2')
+KT2 = TypeVar("KT2")
+VT2 = TypeVar("VT2")
 IT2 = Tuple[KT, VT]
 
-SelfType = TypeVar('SelfType')  # pylint:disable=invalid-name
+SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 
 
 class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta):
@@ -25,22 +34,24 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
     # Signature of the of method varies by collection
     # pylint: disable = arguments-differ
     @staticmethod
-    def of(dict_: Union[Mapping[KT, VT], Iterable[IT]]) -> 'ImmutableDict[KT, VT]':
+    def of(dict_: Union[Mapping[KT, VT], Iterable[IT]]) -> "ImmutableDict[KT, VT]":
         if isinstance(dict_, ImmutableDict):
             return dict_
         else:
             return ImmutableDict.builder().put_all(dict_).build()  # type:ignore
 
     @staticmethod
-    def empty() -> 'ImmutableDict[KT, VT]':
+    def empty() -> "ImmutableDict[KT, VT]":
         return _EMPTY
 
     @staticmethod
-    def builder() -> 'ImmutableDict.Builder[KT, VT]':
+    def builder() -> "ImmutableDict.Builder[KT, VT]":
         return ImmutableDict.Builder()
 
     @staticmethod
-    def index(items: Iterable[VT], key_function: Callable[[VT], KT]) -> 'ImmutableDict[KT, VT]':
+    def index(
+        items: Iterable[VT], key_function: Callable[[VT], KT]
+    ) -> "ImmutableDict[KT, VT]":
         """
         Get a mapping to each value from the result of applying a key function.
 
@@ -54,10 +65,10 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
 
         return ret.build()
 
-    def modified_copy_builder(self) -> 'ImmutableDict.Builder[KT, VT]':
+    def modified_copy_builder(self) -> "ImmutableDict.Builder[KT, VT]":
         return ImmutableDict.Builder(source=self)
 
-    def filter_keys(self, predicate: Callable[[KT], bool]) -> 'ImmutableDict[KT, VT]':
+    def filter_keys(self, predicate: Callable[[KT], bool]) -> "ImmutableDict[KT, VT]":
         """
         Filters an ImmutableDict by a predicate on its keys.
 
@@ -78,13 +89,13 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
             return ret.build()
 
     def __repr__(self):
-        return 'i' + str(self)
+        return "i" + str(self)
 
     def __str__(self):
         return "{%s}" % ", ".join(["%s: %s" % item for item in self.items()])
 
     class Builder(Generic[KT2, VT2]):
-        def __init__(self, source: 'ImmutableDict[KT2,VT2]' = None) -> None:
+        def __init__(self, source: "ImmutableDict[KT2,VT2]" = None) -> None:
             self._dict: MutableMapping[KT2, VT2] = {}
             self.source = source
 
@@ -106,7 +117,9 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
             self._dict[key] = val
             return self
 
-        def put_all(self: SelfType, data: Union[Mapping[KT2, VT2], Iterable[IT2]]) -> SelfType:
+        def put_all(
+            self: SelfType, data: Union[Mapping[KT2, VT2], Iterable[IT2]]
+        ) -> SelfType:
             if isinstance(data, Mapping):
                 for (k, v) in data.items():
                     self.put(k, v)
@@ -115,14 +128,16 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
                 for (k, v) in data:  # type: ignore
                     self.put(k, v)
             else:
-                raise TypeError("Can only initialize ImmutableDict from another dictionary or "
-                                "a sequence of key-value pairs")
+                raise TypeError(
+                    "Can only initialize ImmutableDict from another dictionary or "
+                    "a sequence of key-value pairs"
+                )
             return self
 
         def __setitem__(self, key: KT2, value: VT2) -> None:
             self.put(key, value)
 
-        def build(self) -> 'ImmutableDict[KT2, VT2]':
+        def build(self) -> "ImmutableDict[KT2, VT2]":
             if self.source:
                 # if any puts were done this will be None. If no puts were done we can return
                 # the ImmutableDict we were based on because we will be identical and immutable

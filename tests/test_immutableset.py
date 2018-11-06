@@ -95,7 +95,7 @@ class TestImmutableSet(TestCase):
         self.assertTrue(isinstance(set1, Set))
 
     def test_slots(self):
-        self.assertFalse(hasattr(ImmutableSet.of([1, 2, 3]), '__dict__'))
+        self.assertFalse(hasattr(ImmutableSet.of([1, 2, 3]), "__dict__"))
 
     def test_repr(self):
         self.assertEqual("i{1, 2, 3}", repr(ImmutableSet.of([1, 2, 3, 2])))
@@ -121,7 +121,9 @@ class TestImmutableSet(TestCase):
             ImmutableSet.of(unchecked_string_set, check_top_type_matches=int)
 
     def test_as_list(self):
-        self.assertEqual(ImmutableList.of([3, 1, 2]), ImmutableSet.of([3, 1, 2]).as_list())
+        self.assertEqual(
+            ImmutableList.of([3, 1, 2]), ImmutableSet.of([3, 1, 2]).as_list()
+        )
 
     def test_require_ordered_input(self):
         with self.assertRaises(ValueError):
@@ -135,19 +137,29 @@ class TestImmutableSet(TestCase):
         self.assertEqual(hash(x), hash(y))
 
     def test_ordering(self):
-        self.assertEqual(ImmutableList.of(["a", "b", "c"]),
-                         ImmutableSet.builder(order_key=lambda x: x)
-                         .add_all(["b", "c", "a"]).build().as_list())
+        self.assertEqual(
+            ImmutableList.of(["a", "b", "c"]),
+            ImmutableSet.builder(order_key=lambda x: x)
+            .add_all(["b", "c", "a"])
+            .build()
+            .as_list(),
+        )
 
     def test_difference(self):
-        self.assertEqual(ImmutableSet.of(["a", "c"]),
-                         ImmutableSet.of(["a", "b", "c"]).difference(ImmutableSet.of(["b", "d"])))
-        self.assertEqual(ImmutableSet.of(["a", "c"]),
-                         ImmutableSet.of(["a", "b", "c"]) - ImmutableSet.of(["b", "d"]))
+        self.assertEqual(
+            ImmutableSet.of(["a", "c"]),
+            ImmutableSet.of(["a", "b", "c"]).difference(ImmutableSet.of(["b", "d"])),
+        )
+        self.assertEqual(
+            ImmutableSet.of(["a", "c"]),
+            ImmutableSet.of(["a", "b", "c"]) - ImmutableSet.of(["b", "d"]),
+        )
 
     def test_union(self):
-        self.assertEqual(ImmutableSet.of(["a", "c", "b"]),
-                         ImmutableSet.of(["a", "c"]).union(ImmutableSet.of(["b", "c"])))
+        self.assertEqual(
+            ImmutableSet.of(["a", "c", "b"]),
+            ImmutableSet.of(["a", "c"]).union(ImmutableSet.of(["b", "c"])),
+        )
 
     def test_comparisons(self):
         foo = {1, 2}

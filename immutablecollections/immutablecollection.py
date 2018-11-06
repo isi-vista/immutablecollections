@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Generic, Iterable, Iterator, TypeVar
 
-T = TypeVar('T')  # pylint:disable=invalid-name
+T = TypeVar("T")  # pylint:disable=invalid-name
 
 
 class ImmutableCollection(Generic[T], Iterable[T], metaclass=ABCMeta):

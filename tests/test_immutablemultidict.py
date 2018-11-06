@@ -2,7 +2,10 @@ from collections import Mapping
 from unittest import TestCase
 
 from immutablecollections import ImmutableSet
-from immutablecollections.immutablemultidict import ImmutableListMultiDict,  ImmutableSetMultiDict
+from immutablecollections.immutablemultidict import (
+    ImmutableListMultiDict,
+    ImmutableSetMultiDict,
+)
 
 
 class TestImmutableSetMultiDict(TestCase):
@@ -26,14 +29,16 @@ class TestImmutableSetMultiDict(TestCase):
         self.assertIs(empty1, empty4)
 
     def test_set_repr(self):
-        self.assertEqual("i{1: {2, 3}, 4: {5, 6}}",
-                         repr(ImmutableSetMultiDict.of(
-                             {1: [2, 3], 4: [5, 6]})))
+        self.assertEqual(
+            "i{1: {2, 3}, 4: {5, 6}}",
+            repr(ImmutableSetMultiDict.of({1: [2, 3], 4: [5, 6]})),
+        )
 
     def test_set_str(self):
-        self.assertEqual("{1: {2, 3}, 4: {5, 6}}",
-                         str(ImmutableSetMultiDict.of(
-                             {1: [2, 3], 4: [5, 6]})))
+        self.assertEqual(
+            "{1: {2, 3}, 4: {5, 6}}",
+            str(ImmutableSetMultiDict.of({1: [2, 3], 4: [5, 6]})),
+        )
 
     def test_of(self):
         x = ImmutableSetMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
@@ -42,22 +47,42 @@ class TestImmutableSetMultiDict(TestCase):
         self.assertEqual(ImmutableSet.of([2, 3]), y[1])
 
     def test_unmodified_copy_builder(self):
-        ref: ImmutableSetMultiDict[str, int] = (ImmutableSetMultiDict.builder()
-                                                .put('foo', 5).put('bar', 6)
-                                                .put('foo', 4).build())
+        ref: ImmutableSetMultiDict[str, int] = (
+            ImmutableSetMultiDict.builder()
+            .put("foo", 5)
+            .put("bar", 6)
+            .put("foo", 4)
+            .build()
+        )
 
         self.assertEqual(ref, ref.modified_copy_builder().build())
 
     def test_modified_copy_builder(self):
-        start: ImmutableSetMultiDict[str, int] = (ImmutableSetMultiDict.builder()
-                                                  .put('foo', 5).put('bar', 6)
-                                                  .put('foo', 4).build())
-        updated = start.modified_copy_builder().put('bar', 1).put('foo', 7).put('meep', -1).build()
+        start: ImmutableSetMultiDict[str, int] = (
+            ImmutableSetMultiDict.builder()
+            .put("foo", 5)
+            .put("bar", 6)
+            .put("foo", 4)
+            .build()
+        )
+        updated = (
+            start.modified_copy_builder()
+            .put("bar", 1)
+            .put("foo", 7)
+            .put("meep", -1)
+            .build()
+        )
 
-        ref: ImmutableSetMultiDict[str, int] = (ImmutableSetMultiDict.builder()
-                                                .put('foo', 5).put('bar', 6)
-                                                .put('foo', 4).put('foo', 7)
-                                                .put('bar', 1).put('meep', -1).build())
+        ref: ImmutableSetMultiDict[str, int] = (
+            ImmutableSetMultiDict.builder()
+            .put("foo", 5)
+            .put("bar", 6)
+            .put("foo", 4)
+            .put("foo", 7)
+            .put("bar", 1)
+            .put("meep", -1)
+            .build()
+        )
         self.assertEqual(ref, updated)
 
     def test_len(self):
@@ -72,12 +97,12 @@ class TestImmutableSetMultiDict(TestCase):
         # when you start from a set multidict, your inverses as a list
         # and set multidict both contain the same items, since there
         # are no duplicate mappings in the source
-        reference_set_based = ImmutableSetMultiDict.of({
-            2: [1], 3: [1], 5: [4], 6: [1, 4]
-        })
-        reference_list_based = ImmutableListMultiDict.of({
-            2: [1], 3: [1], 5: [4], 6: [1, 4]
-        })
+        reference_set_based = ImmutableSetMultiDict.of(
+            {2: [1], 3: [1], 5: [4], 6: [1, 4]}
+        )
+        reference_list_based = ImmutableListMultiDict.of(
+            {2: [1], 3: [1], 5: [4], 6: [1, 4]}
+        )
         self.assertEqual(reference_set_based, x.invert_to_set_multidict())
         self.assertEqual(reference_list_based, x.invert_to_list_multidict())
 
@@ -109,7 +134,9 @@ class TestImmutableListMultiDict(TestCase):
         self.assertEqual([2, 2, 3], list(y[1]))
 
     def test_repr(self):
-        self.assertEqual("i{1: [2, 2, 3]}", repr(ImmutableListMultiDict.of({1: [2, 2, 3]})))
+        self.assertEqual(
+            "i{1: [2, 2, 3]}", repr(ImmutableListMultiDict.of({1: [2, 2, 3]}))
+        )
 
     def test_str(self):
         self.assertEqual("{1: [2, 2, 3]}", str(ImmutableListMultiDict.of({1: [2, 2, 3]})))
@@ -145,14 +172,14 @@ class TestImmutableListMultiDict(TestCase):
 
     def test_slots(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
-        self.assertFalse(hasattr(x, '__dict__'))
+        self.assertFalse(hasattr(x, "__dict__"))
 
     def test_builder(self):
         b: ImmutableListMultiDict.Builder[str, int] = ImmutableListMultiDict.builder()
-        b.put('key', 1)
-        b.put_all({'key': [3, 2, 1]})
+        b.put("key", 1)
+        b.put_all({"key": [3, 2, 1]})
         x = b.build()
-        self.assertEqual([1, 3, 2, 1], list(x['key']))
+        self.assertEqual([1, 3, 2, 1], list(x["key"]))
 
     def test_unmodified_copy_builder(self):
         orig = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
@@ -180,14 +207,12 @@ class TestImmutableListMultiDict(TestCase):
 
     def test_inversion(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3, 6], 4: [5, 6]})
-        reference_set_based = ImmutableSetMultiDict.of({
-            2: [1], 3: [1], 5: [4], 6: [1, 4]
-        })
+        reference_set_based = ImmutableSetMultiDict.of(
+            {2: [1], 3: [1], 5: [4], 6: [1, 4]}
+        )
         # 2->1 appears twice because 1->2 appears twice in the source
-        reference_list_based = ImmutableListMultiDict.of({
-            2: [1, 1], 3: [1], 5: [4], 6: [1, 4]
-        })
+        reference_list_based = ImmutableListMultiDict.of(
+            {2: [1, 1], 3: [1], 5: [4], 6: [1, 4]}
+        )
         self.assertEqual(reference_set_based, x.invert_to_set_multidict())
         self.assertEqual(reference_list_based, x.invert_to_list_multidict())
-
-

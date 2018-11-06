@@ -50,4 +50,12 @@ mypy:
 flake8:
 	$(FLAKE8_CMD)
 
-precommit: flake8 mypy lint
+black-fix:
+	black immutablecollections tests
+
+black-check:
+	black --check immutablecollections tests
+
+check: black-check lint mypy flake8
+
+precommit: black-fix check

@@ -1,8 +1,21 @@
 from abc import ABCMeta, abstractmethod, ABC
 from collections import defaultdict
-from typing import AbstractSet, Any, Callable, Collection, Generic, Iterable, Iterator, Mapping, \
-    MutableMapping, Optional, Tuple, TypeVar, Union, \
-    ValuesView  # pylint:disable=unused-import
+from typing import (
+    AbstractSet,
+    Any,
+    Callable,
+    Collection,
+    Generic,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    ValuesView,
+)  # pylint:disable=unused-import
 
 from attr import attrib, attrs
 from frozendict import frozendict
@@ -11,16 +24,16 @@ from immutablecollections import ImmutableList, ImmutableSet
 from immutablecollections.immutablecollection import ImmutableCollection
 from immutablecollections.immutablelist import EMPTY_IMMUTABLE_LIST
 
-KT = TypeVar('KT')
-VT = TypeVar('VT')
+KT = TypeVar("KT")
+VT = TypeVar("VT")
 IT = Tuple[KT, VT]  # item type
 
 # cannot share type variables between out and inner classes
-KT2 = TypeVar('KT2')
-VT2 = TypeVar('VT2')
+KT2 = TypeVar("KT2")
+VT2 = TypeVar("VT2")
 IT2 = Tuple[KT2, VT2]  # item type
 
-SelfType = TypeVar('SelfType')  # pylint:disable=invalid-name
+SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 
 
 class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABCMeta):
@@ -80,7 +93,7 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
     def __iter__(self) -> Iterator[KT]:
         return self.as_dict().__iter__()
 
-    def invert_to_list_multidict(self) -> 'ImmutableListMultiDict[VT, KT]':
+    def invert_to_list_multidict(self) -> "ImmutableListMultiDict[VT, KT]":
         """
         Get the inverse of this multidict as a list multidict.
 
@@ -91,7 +104,7 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
         self._invert_to(sink)
         return sink.build()
 
-    def invert_to_set_multidict(self) -> 'ImmutableSetMultiDict[VT, KT]':
+    def invert_to_set_multidict(self) -> "ImmutableSetMultiDict[VT, KT]":
         """
         Get the inverse of this multidict as a set multidict.
 
@@ -102,7 +115,7 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
         self._invert_to(sink)
         return sink.build()
 
-    def _invert_to(self, sink: 'ImmutableMultiDict.Builder[VT, KT]') -> None:
+    def _invert_to(self, sink: "ImmutableMultiDict.Builder[VT, KT]") -> None:
         for (k, v) in self.items():
             sink.put(v, k)
 
@@ -113,7 +126,7 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
             Add a mapping from ``key`` to ``value``
             """
 
-        def build(self) -> 'ImmutableMultiDict[KT2, VT2]':
+        def build(self) -> "ImmutableMultiDict[KT2, VT2]":
             """
             Get a multidict with all key-value pairs given to this builder.
             """
@@ -131,8 +144,9 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
     # Signature of the of method varies by collection
     # pylint: disable = arguments-differ
     @staticmethod
-    def of(data: Union[Mapping[KT, Iterable[VT]], Iterable[IT]]) -> \
-            'ImmutableSetMultiDict[KT, VT]':
+    def of(
+        data: Union[Mapping[KT, Iterable[VT]], Iterable[IT]]
+    ) -> "ImmutableSetMultiDict[KT, VT]":
         """
         Creates an ImmutableSetMultiDict from existing data.
 
@@ -146,10 +160,12 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         elif isinstance(data, Mapping):
             return ImmutableSetMultiDict.builder().put_all(data).build()  # type: ignore
         else:
-            return ImmutableSetMultiDict.builder().put_all_items(data).build()  # type: ignore
+            return (  # type: ignore
+                ImmutableSetMultiDict.builder().put_all_items(data).build()
+            )
 
     @staticmethod
-    def empty() -> 'ImmutableSetMultiDict[KT, VT]':
+    def empty() -> "ImmutableSetMultiDict[KT, VT]":
         return _SET_EMPTY
 
     # we need to repeat all these inherited/abstract methods with specialized type signatures
@@ -179,14 +195,17 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         """
 
     @staticmethod
-    def builder(value_order_key: Callable[[VT], Any] = None) \
-            -> 'ImmutableSetMultiDict.Builder[KT, VT]':
+    def builder(
+        value_order_key: Callable[[VT], Any] = None
+    ) -> "ImmutableSetMultiDict.Builder[KT, VT]":
         return ImmutableSetMultiDict.Builder(order_key=value_order_key)
 
-    def modified_copy_builder(self) -> 'ImmutableSetMultiDict.Builder[KT, VT]':
+    def modified_copy_builder(self) -> "ImmutableSetMultiDict.Builder[KT, VT]":
         return ImmutableSetMultiDict.Builder(source=self)
 
-    def filter_keys(self, predicate: Callable[[KT], bool]) -> 'ImmutableSetMultiDict[KT, VT]':
+    def filter_keys(
+        self, predicate: Callable[[KT], bool]
+    ) -> "ImmutableSetMultiDict[KT, VT]":
         """
         Filters an ImmutableSetMultiDict by a predicate on its keys.
 
@@ -208,7 +227,7 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
             return ret.build()
 
     def __repr__(self):
-        return 'i' + str(self)
+        return "i" + str(self)
 
     def __str__(self):
         # we use %s for the value position because we know these are ImmutableSets and don't
@@ -216,10 +235,15 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
     class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
-        def __init__(self, *, source: Optional['ImmutableMultiDict[KT2,VT2]'] = None,
-                     order_key: Callable[[VT2], Any] = None) -> None:
+        def __init__(
+            self,
+            *,
+            source: Optional["ImmutableMultiDict[KT2,VT2]"] = None,
+            order_key: Callable[[VT2], Any] = None
+        ) -> None:
             self._dict: MutableMapping[KT2, ImmutableSet.Builder[VT2]] = defaultdict(
-                lambda: ImmutableSet.builder(order_key=order_key))
+                lambda: ImmutableSet.builder(order_key=order_key)
+            )
             self._source = source
             self._dirty = False
 
@@ -258,10 +282,13 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                 self.put(k, v)
             return self
 
-        def build(self) -> 'ImmutableSetMultiDict[KT2, VT2]':
+        def build(self) -> "ImmutableSetMultiDict[KT2, VT2]":
             if self._dirty or self._source is None:
-                result: ImmutableSetMultiDict[KT2, VT2] = FrozenDictBackedImmutableSetMultiDict(
-                    {k: v.build() for (k, v) in self._dict.items()})  # type: ignore
+                result: ImmutableSetMultiDict[
+                    KT2, VT2
+                ] = FrozenDictBackedImmutableSetMultiDict(
+                    {k: v.build() for (k, v) in self._dict.items()}  # type: ignore
+                )
                 return result if result else _SET_EMPTY
             else:
                 # noinspection PyTypeChecker
@@ -296,7 +323,9 @@ class FrozenDictBackedImmutableSetMultiDict(ImmutableSetMultiDict[KT, VT]):
         Get the numeber of key-value mappings in this multidict.
         """
         if self._len is None:
-            object.__setattr__(self, '_len', sum((len(x) for x in self.value_groups()), 0))
+            object.__setattr__(
+                self, "_len", sum((len(x) for x in self.value_groups()), 0)
+            )
         return self._len
 
     def __getitem__(self, k: KT) -> ImmutableSet[VT]:
@@ -314,21 +343,24 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
     # Signature of the of method varies by collection
     # pylint: disable = arguments-differ
     @staticmethod
-    def of(data: Union[Mapping[KT, Iterable[VT]], Iterable[IT]]) -> \
-            'ImmutableListMultiDict[KT, VT]':
+    def of(
+        data: Union[Mapping[KT, Iterable[VT]], Iterable[IT]]
+    ) -> "ImmutableListMultiDict[KT, VT]":
         if isinstance(data, ImmutableListMultiDict):
             return data
         elif isinstance(data, Mapping):
             return ImmutableListMultiDict.builder().put_all(data).build()  # type: ignore
         else:
-            return ImmutableListMultiDict.builder().put_all_items(data).build()  # type: ignore
+            return (  # type: ignore
+                ImmutableListMultiDict.builder().put_all_items(data).build()
+            )
 
     @staticmethod
-    def empty() -> 'ImmutableListMultiDict[KT, VT]':
+    def empty() -> "ImmutableListMultiDict[KT, VT]":
         return _EMPTY_IMMUTABLE_MULTIDICT
 
     @staticmethod
-    def builder() -> 'ImmutableListMultiDict.Builder[KT, VT]':
+    def builder() -> "ImmutableListMultiDict.Builder[KT, VT]":
         return ImmutableListMultiDict.Builder()
 
     # we need to repeat all these inherited/abstract methods with specialized type signatures
@@ -357,10 +389,12 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         """
         return self.as_dict().values()
 
-    def modified_copy_builder(self) -> 'ImmutableListMultiDict.Builder[KT, VT]':
+    def modified_copy_builder(self) -> "ImmutableListMultiDict.Builder[KT, VT]":
         return ImmutableListMultiDict.Builder(source=self)
 
-    def filter_keys(self, predicate: Callable[[KT], bool]) -> 'ImmutableListMultiDict[KT, VT]':
+    def filter_keys(
+        self, predicate: Callable[[KT], bool]
+    ) -> "ImmutableListMultiDict[KT, VT]":
         """
         Filters an ImmutableListMultiDict by a predicate on its keys.
 
@@ -382,7 +416,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
             return ret.build()
 
     def __repr__(self):
-        return 'i' + str(self)
+        return "i" + str(self)
 
     def __str__(self):
         # we use %s for the value position because we know these are ImmutableLists and don't
@@ -390,9 +424,12 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
     class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
-        def __init__(self, *, source: Optional['ImmutableMultiDict[KT2,VT2]'] = None) -> None:
+        def __init__(
+            self, *, source: Optional["ImmutableMultiDict[KT2,VT2]"] = None
+        ) -> None:
             self._dict: MutableMapping[KT2, ImmutableList.Builder[VT2]] = defaultdict(
-                ImmutableList.builder)
+                ImmutableList.builder
+            )
             self._source = source
             self._dirty = False
 
@@ -431,17 +468,22 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                 self.put(k, v)
             return self
 
-        def build(self) -> 'ImmutableListMultiDict[KT2, VT2]':
+        def build(self) -> "ImmutableListMultiDict[KT2, VT2]":
             if self._dirty or self._source is None:
-                result: ImmutableListMultiDict[KT2, VT2] = FrozenDictBackedImmutableListMultiDict(
-                    {k: v.build() for (k, v) in self._dict.items()})  # type: ignore
+                result: ImmutableListMultiDict[
+                    KT2, VT2
+                ] = FrozenDictBackedImmutableListMultiDict(
+                    {k: v.build() for (k, v) in self._dict.items()}  # type: ignore
+                )
                 return result if result else _EMPTY_IMMUTABLE_MULTIDICT
             else:
                 # noinspection PyTypeChecker
                 return self._source  # type: ignore
 
 
-def _freeze_list_multidict(x: Mapping[KT, Iterable[VT]]) -> Mapping[KT, ImmutableList[VT]]:
+def _freeze_list_multidict(
+    x: Mapping[KT, Iterable[VT]]
+) -> Mapping[KT, ImmutableList[VT]]:
     for (_, v) in x.items():
         _check_isinstance(v, Iterable)
     return frozendict({k: ImmutableList.of(v) for (k, v) in x.items()})
@@ -463,21 +505,28 @@ class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
         Get the numeber of key-value mappings in this multidict.
         """
         if self._len is None:
-            object.__setattr__(self, '_len', sum((len(x) for x in self.value_groups()), 0))
+            object.__setattr__(
+                self, "_len", sum((len(x) for x in self.value_groups()), 0)
+            )
         return self._len
 
 
 # Singleton instance for empty
-_EMPTY_IMMUTABLE_MULTIDICT: ImmutableListMultiDict = FrozenDictBackedImmutableListMultiDict({})
+_EMPTY_IMMUTABLE_MULTIDICT: ImmutableListMultiDict = FrozenDictBackedImmutableListMultiDict(
+    {}
+)
 
 
 # copied from VistaUtils' preconditions.py to avoid dependency loop
-_T = TypeVar('_T')
-_ClassInfo = Union[type, Tuple[Union[type, Tuple], ...]]   # pylint:disable=invalid-name
+_T = TypeVar("_T")
+_ClassInfo = Union[type, Tuple[Union[type, Tuple], ...]]  # pylint:disable=invalid-name
 
 
 def _check_isinstance(item: _T, classinfo: _ClassInfo) -> _T:
     if not isinstance(item, classinfo):
-        raise TypeError('Expected instance of type {!r} but got type {!r} for {!r}'
-                        .format(classinfo, type(item), item))
+        raise TypeError(
+            "Expected instance of type {!r} but got type {!r} for {!r}".format(
+                classinfo, type(item), item
+            )
+        )
     return item
