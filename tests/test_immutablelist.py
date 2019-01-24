@@ -87,6 +87,10 @@ class TestImmutableList(TestCase):
     def test_str(self):
         self.assertEqual("[1, 2, 3]", str(ImmutableList.of([1, 2, 3])))
 
+    def test_slice(self):
+        self.assertEqual(2, ImmutableList.of([1, 2, 3])[1])
+        self.assertEqual((2, 3), ImmutableList.of([1, 2, 3])[1:])
+
     @staticmethod
     def type_annotations() -> str:
         # Just to check for mypy warnings

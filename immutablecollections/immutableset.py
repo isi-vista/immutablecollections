@@ -10,6 +10,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    overload,
     Sequence,
     Tuple,
     Type,
@@ -118,12 +119,6 @@ class ImmutableSet(
         Get a view of this set's items as a list in insertion order.
         """
         raise NotImplementedError()
-
-    @abstractmethod
-    def __getitem__(self, item) -> T:
-        """
-        Get the item at the given index in the set's iteration order
-        """
 
     # we would really like this to be AbstractSet[ExtendsT] but Python doesn't support it
     def union(
@@ -441,8 +436,21 @@ class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
     def __contains__(self, item) -> bool:
         return self._set.__contains__(item)
 
-    def __getitem__(self, item) -> T:
-        return self._iteration_order[item]
+    @overload
+    def __getitem__(self, index: int) -> T:  # pylint:disable=function-redefined
+        pass  # pragma: no cover
+
+    @overload
+    def __getitem__(  # pylint:disable=function-redefined
+        self, index: slice
+    ) -> Sequence[T]:
+        pass  # pragma: no cover
+
+    def __getitem__(  # pylint:disable=function-redefined
+        self, index: Union[int, slice]
+    ) -> Union[T, Sequence[T]]:
+        # this works because Tuple can handle either type of index
+        return self._iteration_order[index]
 
     def __eq__(self, other):
         # pylint:disable=protected-access
@@ -474,9 +482,24 @@ class _SingletonImmutableSet(ImmutableSet[T]):
     def __contains__(self, item) -> bool:
         return self._single_value == item
 
-    def __getitem__(self, item) -> T:
+    @overload
+    def __getitem__(self, index: int) -> T:  # pylint:disable=function-redefined
+        pass  # pragma: no cover
+
+    @overload
+    def __getitem__(  # pylint:disable=function-redefined
+        self, index: slice
+    ) -> Sequence[T]:
+        pass  # pragma: no cover
+
+    def __getitem__(  # pylint:disable=function-redefined
+        self, item: Union[int, slice]
+    ) -> Union[T, Sequence[T]]:
+        # this works because Tuple can handle either type of index
         if item == 0:
             return self._single_value
+        elif isinstance(item, slice):
+            pass
         else:
             raise IndexError(f"Index {item} out-of-bounds for size 1 ImmutableSet")
 
