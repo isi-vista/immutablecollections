@@ -438,13 +438,13 @@ class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
 
     @overload
     def __getitem__(self, index: int) -> T:  # pylint:disable=function-redefined
-        pass
+        pass  # pragma: no cover
 
     @overload
     def __getitem__(  # pylint:disable=function-redefined
         self, index: slice
     ) -> Sequence[T]:
-        pass
+        pass  # pragma: no cover
 
     def __getitem__(  # pylint:disable=function-redefined
         self, index: Union[int, slice]
@@ -484,13 +484,13 @@ class _SingletonImmutableSet(ImmutableSet[T]):
 
     @overload
     def __getitem__(self, index: int) -> T:  # pylint:disable=function-redefined
-        pass
+        pass  # pragma: no cover
 
     @overload
     def __getitem__(  # pylint:disable=function-redefined
         self, index: slice
     ) -> Sequence[T]:
-        pass
+        pass  # pragma: no cover
 
     def __getitem__(  # pylint:disable=function-redefined
         self, item: Union[int, slice]
