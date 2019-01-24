@@ -19,7 +19,6 @@ PYLINT:=pylint immutablecollections
 MYPY:=mypy $(MYPY_ARGS) immutablecollections
 # Suppressed warnings:
 # Too many arguments, Unexpected keyword arguments: can't do static analysis on attrs __init__
-# Signature of "__getitem__": https://github.com/python/mypy/issues/4108
 # Module has no attribute *: mypy doesn't understand __init__.py imports
 # mypy/typeshed/stdlib/3/builtins.pyi:39: This is evidence given for false positives on
 #   attrs __init__ methods. (This line is for object.__init__.)
