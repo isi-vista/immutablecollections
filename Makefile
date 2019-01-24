@@ -26,7 +26,7 @@ MYPY:=mypy $(MYPY_ARGS) immutablecollections
 # X has no attribute "validator" - thrown for mypy validator decorators, which are dynamically generated
 # X has no attribute "default" - thrown for mypy default decorators, which are dynamically generated
 # SelfType" has no attribute - mypy seems not to be able to figure out the methods of self for SelfType
-FILTERED_MYPY:=$(MYPY) | perl -ne 'print if !/(Too many arguments|Signature of "__getitem__"|Only concrete class|Unexpected keyword argument|mypy\/typeshed\/stdlib\/3\/builtins.pyi:39: note: "\w+" defined here|Module( '\''\w+'\'')? has no attribute|has no attribute "validator"|has no attribute "default"|SelfType" has no attribute)/'
+FILTERED_MYPY:=$(MYPY) | perl -ne 'print if !/(Too many arguments|Only concrete class|Unexpected keyword argument|mypy\/typeshed\/stdlib\/3\/builtins.pyi:39: note: "\w+" defined here|Module( '\''\w+'\'')? has no attribute|has no attribute "validator"|has no attribute "default"|SelfType" has no attribute)/'
 
 # this is the standard ignore list plus ignores for hanging indents, pending figuring out how to auto-format them
 FLAKE8:=flake8 --exit-zero
