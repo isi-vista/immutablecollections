@@ -195,6 +195,10 @@ class TestImmutableSet(TestCase):
         with self.assertRaises(ValueError):
             s.index("z")
 
+    def test_slice(self):
+        self.assertEqual(2, ImmutableSet.of([1, 2, 3])[1])
+        self.assertEqual((2, 3), ImmutableSet.of([1, 2, 3])[1:])
+
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings

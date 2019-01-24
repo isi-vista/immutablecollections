@@ -1,5 +1,16 @@
 from abc import ABCMeta
-from typing import Generic, Iterable, Iterator, List, Sequence, Sized, Tuple, TypeVar
+from typing import (
+    Generic,
+    Iterable,
+    Iterator,
+    List,
+    Sequence,
+    Sized,
+    Tuple,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from attr import attrib, attrs
 
@@ -64,8 +75,21 @@ class _TupleBackedImmutableList(ImmutableList[T]):
 
     _list: Tuple[T, ...] = attrib(converter=tuple)
 
-    def __getitem__(self, index: int) -> T:
-        return self._list.__getitem__(index)
+    @overload
+    def __getitem__(self, index: int) -> T:  # pylint:disable=function-redefined
+        pass
+
+    @overload
+    def __getitem__(  # pylint:disable=function-redefined
+        self, index: slice
+    ) -> Sequence[T]:
+        pass
+
+    def __getitem__(  # pylint:disable=function-redefined
+        self, index: Union[int, slice]
+    ) -> Union[T, Sequence[T]]:
+        # this works because Tuple can handle either type of index
+        return self._list[index]
 
     def __iter__(self) -> Iterator[T]:
         return self._list.__iter__()
