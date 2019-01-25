@@ -13,3 +13,5 @@ pylint==2.1.1
 flake8==3.5.0
 mypy==0.620
 twine
+pytest==4.1.1
+pytest-benchmark==3.2.2

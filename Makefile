@@ -40,6 +40,9 @@ coverage:
 coverage-all:
 	$(NOSE_ALL_COVERAGE)
 
+benchmark:
+	pytest benchmarks --benchmark-timer=time.process_time 
+
 lint:
 	$(PYLINT)
 
@@ -50,7 +53,7 @@ flake8:
 	$(FLAKE8_CMD)
 
 black-fix:
-	black immutablecollections tests
+	black immutablecollections tests benchmarks
 
 black-check:
 	black --check immutablecollections tests

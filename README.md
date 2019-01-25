@@ -8,3 +8,5 @@ A library for immutable collections, in the spirit of Guava's Immutable Collecti
 # Contributing
 
 Run `make precommit` before commiting. Eventually this will be automated.
+
+You can run `make benchmark` to run (depressing) benchmarks.
