@@ -40,6 +40,9 @@ coverage:
 coverage-all:
 	$(NOSE_ALL_COVERAGE)
 
+benchmark:
+	pytest benchmarks --benchmark-timer=time.process_time 
+
 lint:
 	$(PYLINT)
 
