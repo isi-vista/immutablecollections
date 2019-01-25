@@ -499,7 +499,10 @@ class _SingletonImmutableSet(ImmutableSet[T]):
         if item == 0:
             return self._single_value
         elif isinstance(item, slice):
-            pass
+            raise NotImplementedError(
+                "Slicing of singleton immutable sets not yet implemented, see "
+                "https://github.com/isi-vista/immutablecollections/issues/23."
+            )
         else:
             raise IndexError(f"Index {item} out-of-bounds for size 1 ImmutableSet")
 
