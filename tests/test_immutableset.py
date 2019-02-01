@@ -195,6 +195,12 @@ class TestImmutableSet(TestCase):
         with self.assertRaises(ValueError):
             s.index("z")
 
+    def test_singleton_index(self):
+        s = ImmutableSet.of([1])
+
+        self.assertEqual(1, s[0])
+        self.assertEqual(1, s[-1])
+
     def test_slice(self):
         self.assertEqual(2, ImmutableSet.of([1, 2, 3])[1])
         self.assertEqual((2, 3), ImmutableSet.of([1, 2, 3])[1:])

@@ -496,7 +496,7 @@ class _SingletonImmutableSet(ImmutableSet[T]):
         self, item: Union[int, slice]
     ) -> Union[T, Sequence[T]]:
         # this works because Tuple can handle either type of index
-        if item == 0:
+        if item == 0 or -1:
             return self._single_value
         elif isinstance(item, slice):
             raise NotImplementedError(
