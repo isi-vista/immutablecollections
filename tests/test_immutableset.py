@@ -200,6 +200,14 @@ class TestImmutableSet(TestCase):
 
         self.assertEqual(1, s[0])
         self.assertEqual(1, s[-1])
+        with self.assertRaises(IndexError):
+            s[2]
+        with self.assertRaises(IndexError):
+            s[-2]
+        with self.assertRaises(IndexError):
+            s[25]
+        with self.assertRaises(IndexError):
+            s[-25]
 
     def test_slice(self):
         self.assertEqual(2, ImmutableSet.of([1, 2, 3])[1])
