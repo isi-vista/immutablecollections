@@ -1,3 +1,12 @@
+Immutablecollections 0.5.0 (2019-02-07)
+=======================================
+
+New Features
+------------
+
+- Distribute type information (PEP 561) (`#29 <https://github.com/isi-vista/immutablecollections/issues/29>`_)
+
+
 Immutablecollections 0.4.0 (2019-02-07)
 =======================================
 
