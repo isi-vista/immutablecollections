@@ -17,6 +17,7 @@ setup(name=_name,
       description='Immutable Collections (inspired by Google Guava)',
       url='https://github.com/isi-vista/immutablecollections',
       packages=['immutablecollections'],
+      package_data={'immutablecollections': ['py.typed']},
       # 3.6 and up, but not Python 4
       python_requires='~=3.6',
       install_requires=[
