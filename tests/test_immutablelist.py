@@ -1,50 +1,45 @@
 from collections.abc import Sequence
 from unittest import TestCase
 
-from immutablecollections import ImmutableList
+from immutablecollections import immutablelist, ImmutableList
 
 
 class TestImmutableList(TestCase):
     def test_empty(self):
-        empty = ImmutableList.empty()
+        empty = immutablelist()
         self.assertEqual(0, len(empty))
-        empty2 = ImmutableList.of([])
+        empty2 = immutablelist([])
         self.assertEqual(0, len(empty2))
         self.assertEqual(empty, empty2)
-        empty3 = ImmutableList.builder().build()
-        self.assertEqual(0, len(empty3))
-        self.assertEqual(empty, empty3)
 
     def test_empty_singleton(self):
-        empty1 = ImmutableList.empty()
-        empty2 = ImmutableList.empty()
+        empty1 = immutablelist()
+        empty2 = immutablelist()
         self.assertIs(empty1, empty2)
-        empty3 = ImmutableList.builder().build()
-        self.assertIs(empty1, empty3)
-        empty4 = ImmutableList.of(dict())
+        empty4 = immutablelist(dict())
         self.assertIs(empty1, empty4)
 
     def test_basic(self):
         items = [1, 2, 3]
-        list1 = ImmutableList.of(items)
+        list1 = immutablelist(items)
         self.assertEqual(list(list1), items)
         self.assertEqual(len(list1), 3)
         self.assertEqual(list1[0], 1)
 
     def test_return_identical_immutable(self):
-        list1 = ImmutableList.of([1, 2, 3])
-        list2 = ImmutableList.of(list1)
+        list1 = immutablelist([1, 2, 3])
+        list2 = immutablelist(list1)
         self.assertIs(list1, list2)
 
     def test_singleton_empty(self):
-        empty = ImmutableList.empty()
-        empty2 = ImmutableList.empty()
+        empty = immutablelist()
+        empty2 = immutablelist()
         self.assertIs(empty, empty2)
 
     def test_hash_eq(self):
-        list1 = ImmutableList.of([1, 2, 3])
-        list2 = ImmutableList.of([1, 2, 3])
-        list3 = ImmutableList.of([3, 2, 1])
+        list1 = immutablelist([1, 2, 3])
+        list2 = immutablelist([1, 2, 3])
+        list3 = immutablelist([3, 2, 1])
 
         self.assertEqual(list1, list2)
         self.assertNotEqual(list1, list3)
@@ -57,13 +52,13 @@ class TestImmutableList(TestCase):
 
     def test_immutable(self):
         source = [1, 2, 3]
-        list1 = ImmutableList.of(source)
+        list1 = immutablelist(source)
         with self.assertRaises(AttributeError):
             # noinspection PyUnresolvedReferences
             list1.append(4)
         # Update doesn't affect original
         source.append(4)
-        self.assertNotEqual(ImmutableList.of(source), list1)
+        self.assertNotEqual(immutablelist(source), list1)
 
     def test_cannot_init(self):
         with self.assertRaises(TypeError):
@@ -72,27 +67,27 @@ class TestImmutableList(TestCase):
 
     def test_bad_args(self):
         with self.assertRaises(TypeError):
-            ImmutableList.of(7)
+            immutablelist(7)
 
     def test_isinstance(self):
-        list1 = ImmutableList.of([1, 2, 3])
+        list1 = immutablelist([1, 2, 3])
         self.assertTrue(isinstance(list1, Sequence))
 
     def test_slots(self):
-        self.assertFalse(hasattr(ImmutableList.of([1, 2, 3]), "__dict__"))
+        self.assertFalse(hasattr(immutablelist([1, 2, 3]), "__dict__"))
 
     def test_repr(self):
-        self.assertEqual("i[1, 2, 3]", repr(ImmutableList.of([1, 2, 3])))
+        self.assertEqual("i[1, 2, 3]", repr(immutablelist([1, 2, 3])))
 
     def test_str(self):
-        self.assertEqual("[1, 2, 3]", str(ImmutableList.of([1, 2, 3])))
+        self.assertEqual("[1, 2, 3]", str(immutablelist([1, 2, 3])))
 
     def test_slice(self):
-        self.assertEqual(2, ImmutableList.of([1, 2, 3])[1])
-        self.assertEqual((2, 3), ImmutableList.of([1, 2, 3])[1:])
+        self.assertEqual(2, immutablelist([1, 2, 3])[1])
+        self.assertEqual((2, 3), immutablelist([1, 2, 3])[1:])
 
     @staticmethod
     def type_annotations() -> str:
         # Just to check for mypy warnings
-        list1 = ImmutableList.of("a")
+        list1 = immutablelist("a")
         return list1[0]

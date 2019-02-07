@@ -1,30 +1,28 @@
 from collections import Mapping
 from unittest import TestCase
 
-from immutablecollections import ImmutableSet
-from immutablecollections.immutablemultidict import (
-    ImmutableListMultiDict,
+from immutablecollections import (
+    ImmutableSet,
     ImmutableSetMultiDict,
+    ImmutableListMultiDict,
+    immutablesetmultidict,
+    immutablelistmultidict,
+    immutableset,
 )
 
 
 class TestImmutableSetMultiDict(TestCase):
     def test_empty(self):
-        empty = ImmutableSetMultiDict.empty()
+        empty = immutablesetmultidict()
         self.assertEqual(0, len(empty))
         empty2 = ImmutableSetMultiDict.of(dict())
         self.assertEqual(0, len(empty2))
         self.assertEqual(empty, empty2)
-        empty3 = ImmutableSetMultiDict.builder().build()
-        self.assertEqual(0, len(empty3))
-        self.assertEqual(empty, empty3)
 
     def test_empty_singleton(self):
-        empty1 = ImmutableSetMultiDict.empty()
-        empty2 = ImmutableSetMultiDict.empty()
+        empty1 = immutablesetmultidict()
+        empty2 = immutablesetmultidict()
         self.assertIs(empty1, empty2)
-        empty3 = ImmutableSetMultiDict.builder().build()
-        self.assertIs(empty1, empty3)
         empty4 = ImmutableSetMultiDict.of(dict())
         self.assertIs(empty1, empty4)
 
@@ -43,8 +41,8 @@ class TestImmutableSetMultiDict(TestCase):
     def test_of(self):
         x = ImmutableSetMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
         self.assertEqual(ImmutableSet.of([2, 3]), x[1])
-        y = ImmutableSetMultiDict.of([(1, 2), (1, 2), (1, 3), (4, 5), (4, 6)])
-        self.assertEqual(ImmutableSet.of([2, 3]), y[1])
+        y = immutablesetmultidict([(1, 2), (1, 2), (1, 3), (4, 5), (4, 6)])
+        self.assertEqual(immutableset([2, 3]), y[1])
 
     def test_unmodified_copy_builder(self):
         ref: ImmutableSetMultiDict[str, int] = (
@@ -109,28 +107,23 @@ class TestImmutableSetMultiDict(TestCase):
 
 class TestImmutableListMultiDict(TestCase):
     def test_empty(self):
-        empty = ImmutableListMultiDict.empty()
+        empty = immutablelistmultidict()
         self.assertEqual(0, len(empty))
         empty2 = ImmutableListMultiDict.of(dict())
         self.assertEqual(0, len(empty2))
         self.assertEqual(empty, empty2)
-        empty3 = ImmutableListMultiDict.builder().build()
-        self.assertEqual(0, len(empty3))
-        self.assertEqual(empty, empty3)
 
     def test_empty_singleton(self):
-        empty1 = ImmutableListMultiDict.empty()
-        empty2 = ImmutableListMultiDict.empty()
+        empty1 = immutablelistmultidict()
+        empty2 = immutablelistmultidict()
         self.assertIs(empty1, empty2)
-        empty3 = ImmutableListMultiDict.builder().build()
-        self.assertIs(empty1, empty3)
         empty4 = ImmutableListMultiDict.of(dict())
         self.assertIs(empty1, empty4)
 
     def test_of(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
         self.assertEqual([2, 2, 3], list(x[1]))
-        y = ImmutableListMultiDict.of([(1, 2), (1, 2), (1, 3), (4, 5), (4, 6)])
+        y = immutablelistmultidict([(1, 2), (1, 2), (1, 3), (4, 5), (4, 6)])
         self.assertEqual([2, 2, 3], list(y[1]))
 
     def test_repr(self):

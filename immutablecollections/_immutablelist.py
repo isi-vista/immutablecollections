@@ -4,6 +4,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Optional,
     Sequence,
     Sized,
     Tuple,
@@ -20,6 +21,32 @@ T = TypeVar("T")  # pylint:disable=invalid-name
 T2 = TypeVar("T2")
 
 
+def immutablelist(iterable: Optional[Iterable[T]] = None) -> "ImmutableList[T]":
+    """
+    Create an immutable list with the given contents.
+
+    The iteration order of the created list will match *iterable*.  If *iterable* is `None`, an
+    empty `ImmutableList` will be returned.
+
+    If *iterable* is already an ``ImmutableList``, *iterable* itself will be returned.
+    """
+    # immutablelist() should return an empty set
+    if iterable is None:
+        return _EMPTY_IMMUTABLE_LIST
+
+    if isinstance(iterable, ImmutableList):
+        # if an ImmutableList is input, we can safely just return it,
+        # since the object can safely be shared
+        return iterable
+
+    values_as_tuple = tuple(iterable)
+
+    if values_as_tuple:
+        return _TupleBackedImmutableList(iterable)
+    else:
+        return _EMPTY_IMMUTABLE_LIST
+
+
 class ImmutableList(
     Generic[T], ImmutableCollection[T], Sequence[T], Iterable[T], metaclass=ABCMeta
 ):
@@ -29,6 +56,9 @@ class ImmutableList(
     # pylint: disable = arguments-differ
     @staticmethod
     def of(seq: Iterable[T]) -> "ImmutableList[T]":
+        """
+        Use of this method is deprecated. Prefer the module-level ``immutablelist``.
+        """
         if isinstance(seq, ImmutableList):
             return seq
         else:
@@ -36,13 +66,17 @@ class ImmutableList(
 
     @staticmethod
     def empty() -> "ImmutableList[T]":
-        return EMPTY_IMMUTABLE_LIST
+        return _EMPTY_IMMUTABLE_LIST
 
     @staticmethod
     def builder() -> "ImmutableList.Builder[T]":
         return ImmutableList.Builder()
 
     class Builder(Generic[T2], Sized):
+        """
+        Use of this builder is deprecated. Prefer to pass a regular ``list`` to ``immutablelist``
+        """
+
         def __init__(self):
             self._list: List[T2] = []
 
@@ -61,7 +95,7 @@ class ImmutableList(
             if self._list:
                 return _TupleBackedImmutableList(self._list)
             else:
-                return EMPTY_IMMUTABLE_LIST
+                return _EMPTY_IMMUTABLE_LIST
 
     def __repr__(self):
         return "i" + str(self)
@@ -99,4 +133,4 @@ class _TupleBackedImmutableList(ImmutableList[T]):
 
 
 # Singleton instance for empty
-EMPTY_IMMUTABLE_LIST: ImmutableList = _TupleBackedImmutableList(())
+_EMPTY_IMMUTABLE_LIST: ImmutableList = _TupleBackedImmutableList(())

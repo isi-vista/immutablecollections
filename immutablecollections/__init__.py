@@ -30,9 +30,14 @@ equal.
 from attr.exceptions import FrozenInstanceError
 
 from immutablecollections.immutablecollection import ImmutableCollection
-from immutablecollections.immutabledict import ImmutableDict
-from immutablecollections.immutablelist import ImmutableList
-from immutablecollections.immutableset import ImmutableSet
-from immutablecollections.utils import ImmutableMixin
+from immutablecollections._immutabledict import immutabledict, ImmutableDict
+from immutablecollections._immutablelist import immutablelist, ImmutableList
+from immutablecollections._immutableset import immutableset, ImmutableSet
+from immutablecollections._immutablemultidict import (
+    ImmutableSetMultiDict,
+    ImmutableListMultiDict,
+    immutablelistmultidict,
+    immutablesetmultidict,
+)
 
 from immutablecollections.version import version as __version__

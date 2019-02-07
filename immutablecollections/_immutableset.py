@@ -6,9 +6,12 @@ from typing import (
     Container,
     FrozenSet,
     Generic,
+    ItemsView,
     Iterable,
     Iterator,
+    KeysView,
     List,
+    MutableSet,
     Optional,
     overload,
     Sequence,
@@ -16,17 +19,89 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    ValuesView,
 )
 
 import attr
 from attr import attrib, attrs, validators
 
-from immutablecollections import immutablecollection, immutablelist
+from immutablecollections import immutablecollection
+from immutablecollections._utils import DICT_ITERATION_IS_DETERMINISTIC
 
 T = TypeVar("T")  # pylint:disable=invalid-name
 # necessary because inner classes cannot share typevars
 T2 = TypeVar("T2")  # pylint:disable=invalid-name
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
+
+
+def immutableset(
+    iterable: Optional[Iterable[T]] = None, *, disable_order_check: bool = False
+) -> "ImmutableSet[T]":
+    """
+    Create an immutable set with the given contents.
+
+    The iteration order of the created set will match *iterable*.  Note that for this reason,
+    when initializing an ``ImmutableSet`` from a constant collection expression, prefer a
+    list over a set.  We attempt to catch a handful of common cases in which determinsitic
+    iteration order would be discarded: initializing from a (non-``ImmutableSet``) set or
+    (on CPython < 3.6.0 and other Pythons < 3.7.0) initializing from a dictionary view. In
+    these cases we will throw an exception as a warning to the programmer, but this behavior
+    could be removed in the future and should not be relied upon.  This check may be disabled
+    by setting *disable_order_check* to ``True``.
+
+    If *iterable* is already an ``ImmutableSet``, *iterable* itself will be returned.
+    """
+    # immutableset() should return an empty set
+    if iterable is None:
+        return _EMPTY
+
+    if isinstance(iterable, ImmutableSet):
+        # if an ImmutableSet is input, we can safely just return it,
+        # since the object can safely be shared
+        return iterable
+
+    if not disable_order_check:
+        # case where iterable is an ImmutableSet (which is order-safe)
+        # is already checked above
+        if isinstance(iterable, AbstractSet):
+            raise ValueError(
+                "Attempting to initialize an ImmutableSet from "
+                "a non-ImmutableSet set. This probably loses "
+                "determinism in iteration order.  If you don't care "
+                "or are otherwise sure your input has determinstic "
+                "iteration order, specify disable_order_check=True"
+            )
+        # we put this check on the outside to avoid isinstance checks on newer Python versions
+        if not DICT_ITERATION_IS_DETERMINISTIC:
+            if (
+                isinstance(iterable, KeysView)
+                or isinstance(iterable, ValuesView)
+                or isinstance(iterable, ItemsView)
+            ):
+                raise ValueError(
+                    "Attempting to initialize an ImmutableSet from "
+                    "a dict view. On this Python version, this probably loses "
+                    "determinism in iteration order.  If you don't care "
+                    "or are otherwise sure your input has determinstic "
+                    "iteration order, specify disable_order_check=True"
+                )
+
+    iteration_order = []
+    containment_set: MutableSet[T] = set()
+    for value in iterable:
+        if value not in containment_set:
+            containment_set.add(value)
+            iteration_order.append(value)
+
+    if iteration_order:
+        if len(iteration_order) == 1:
+            return _SingletonImmutableSet(iteration_order[0], top_level_type=None)
+        else:
+            return _FrozenSetBackedImmutableSet(
+                containment_set, iteration_order, top_level_type=None
+            )
+    else:
+        return _EMPTY
 
 
 # typing.AbstractSet matches collections.abc.Set
@@ -67,23 +142,7 @@ class ImmutableSet(
         seq: Iterable[T], check_top_type_matches=None, require_ordered_input=False
     ) -> "ImmutableSet[T]":  # typing: ignore
         """
-        Create an immutable set with the given contents.
-
-        The iteration order of the created set will match seq.  Note that for this reason,
-        when initializing an immutable list from a constant collection expression, prefer a
-        list over a set.
-
-        If a type is provided to check_top_matches, each element of seq will be checked to
-        be an instance of the provided type.
-
-        If seq is already an ImmutableSet, seq itself will be returned.  If check_top_matches
-        is specified and that ImmutableSet has already been type checked for a type which is a
-        sub-class of the provided class, it is not type-checked again.
-
-        If require_ordered_input is True (default False), an exception will be thrown if a
-        non-sequence, non-ImmutableSet is used for initialization.  This is recommended to help
-        encourage determinism.  A particularly common case is that ImmutableSets should not be
-        initialized from set literals; prefer list literals to preserve ordering information.
+        Deprecated - prefer ``immutableset`` module-level factory method.
         """
         # pylint:disable=protected-access
         if isinstance(seq, ImmutableSet):
@@ -112,13 +171,6 @@ class ImmutableSet(
         Get an empty ImmutableSet.
         """
         return _EMPTY
-
-    @abstractmethod
-    def as_list(self) -> immutablelist.ImmutableList[T]:
-        """
-        Get a view of this set's items as a list in insertion order.
-        """
-        raise NotImplementedError()
 
     # we would really like this to be AbstractSet[ExtendsT] but Python doesn't support it
     def union(
@@ -419,13 +471,10 @@ class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
     # because only the set contents should matter for equality, we set cmp=False hash=False
     # on the remaining attributes
     # Mypy does not believe this is a valid converter, but it is
-    _iteration_order: immutablelist.ImmutableList[T] = attrib(
-        converter=immutablelist.ImmutableList.of, cmp=False, hash=False  # type: ignore
+    _iteration_order: Tuple[T, ...] = attrib(
+        converter=tuple, cmp=False, hash=False  # type: ignore
     )
     _top_level_type: Optional[Type] = attrib(cmp=False, hash=False)
-
-    def as_list(self) -> immutablelist.ImmutableList[T]:
-        return self._iteration_order
 
     def __iter__(self) -> Iterator[T]:
         return self._iteration_order.__iter__()
@@ -469,9 +518,6 @@ class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
 class _SingletonImmutableSet(ImmutableSet[T]):
     _single_value: T = attrib()
     _top_level_type: Optional[Type] = attrib(cmp=False, hash=False)
-
-    def as_list(self) -> immutablelist.ImmutableList[T]:
-        return immutablelist.ImmutableList.of([self._single_value])
 
     def __iter__(self) -> Iterator[T]:
         return iter((self._single_value,))

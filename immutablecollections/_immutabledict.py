@@ -1,10 +1,12 @@
 from abc import ABCMeta
 from typing import (
+    Dict,
     Iterable,
     Mapping,
     TypeVar,
     Tuple,
     Iterator,
+    Optional,
     Union,
     Generic,
     Callable,
@@ -15,6 +17,7 @@ from attr import attrs, attrib
 from frozendict import frozendict
 
 from immutablecollections.immutablecollection import ImmutableCollection
+from immutablecollections._utils import DICT_ITERATION_IS_DETERMINISTIC
 
 KT = TypeVar("KT")
 VT = TypeVar("VT")
@@ -27,6 +30,47 @@ IT2 = Tuple[KT, VT]
 
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 
+AllowableDictType = Union[  # pylint:disable=invalid-name
+    "ImmutableDict[KT, VT]", Dict[KT, VT]
+]
+
+
+def immutabledict(
+    iterable: Optional[Union[Iterable[Tuple[KT, VT]], AllowableDictType]] = None
+) -> "ImmutableDict[KT, VT]":
+    """
+    Create an immutable dictionary with the given mappings.
+
+    Mappings may be specified as a sequence of key-value pairs or as another ``ImmutableDict`` or
+    (on Python 3.7+ and CPython 3.6+) as a built-in ``dict``.
+
+    The iteration order of the created keys, values, and items of the resulting ``ImmutableDict``
+    will match *iterable*.
+
+    If *iterable* is already an ``ImmutableDict``, *iterable* itself will be returned.
+    """
+    # immutabledict() should return an empty set
+    if iterable is None:
+        return _EMPTY
+
+    if isinstance(iterable, ImmutableDict):
+        # if an ImmutableDict is input, we can safely just return it,
+        # since the object can safely be shared
+        return iterable
+
+    if isinstance(iterable, Dict) and not DICT_ITERATION_IS_DETERMINISTIC:
+        raise ValueError(
+            "ImmutableDicts can only be initialized from built-in dicts when the "
+            "iteration of built-in dicts is guaranteed to be deterministic (Python "
+            "3.7+; CPython 3.6+)"
+        )
+
+    ret: ImmutableDict[KT, VT] = _FrozenDictBackedImmutableDict(iterable)
+    if ret:
+        return ret
+    else:
+        return _EMPTY
+
 
 class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta):
     __slots__ = ()
@@ -35,6 +79,9 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
     # pylint: disable = arguments-differ
     @staticmethod
     def of(dict_: Union[Mapping[KT, VT], Iterable[IT]]) -> "ImmutableDict[KT, VT]":
+        """
+        Deprecated - prefer ``immutabledict`` module-level factory
+        """
         if isinstance(dict_, ImmutableDict):
             return dict_
         else:
@@ -42,10 +89,17 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
 
     @staticmethod
     def empty() -> "ImmutableDict[KT, VT]":
+        """
+        Deprecated - prefer the ``immutabledict`` module-level factory with no arguments.
+        """
         return _EMPTY
 
     @staticmethod
     def builder() -> "ImmutableDict.Builder[KT, VT]":
+        """
+        Deprecated - prefer to build a list of tuples and pass them to the ``immutabledict``
+        module-level factory
+        """
         return ImmutableDict.Builder()
 
     @staticmethod
@@ -58,12 +112,7 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         The result is an `ImmutableDict` where each given item appears as a value which
         is mapped to from the result of applying `key_function` to the value.
         """
-        ret: ImmutableDict.Builder[KT, VT] = ImmutableDict.builder()
-
-        for item in items:
-            ret.put(key_function(item), item)
-
-        return ret.build()
+        return immutabledict((key_function(item), item) for item in items)
 
     def modified_copy_builder(self) -> "ImmutableDict.Builder[KT, VT]":
         return ImmutableDict.Builder(source=self)
@@ -79,14 +128,11 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         ImmutableDict in general is updated to maintain order) and allows us not to do any
         copying if all keys pass the filter
         """
-        retained_keys = [key for key in self.keys() if predicate(key)]
-        if len(retained_keys) == len(self.keys()):
+        new_items = [item for item in self.items() if predicate(item[0])]
+        if len(new_items) == len(self):
             return self
         else:
-            ret: ImmutableDict.Builder[KT, VT] = ImmutableDict.builder()
-            for key in retained_keys:
-                ret.put(key, self[key])
-            return ret.build()
+            return immutabledict(new_items)
 
     def __repr__(self):
         return "i" + str(self)
@@ -144,13 +190,13 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
                 # objects can be safely shared
                 return self.source
             if self._dict:
-                return FrozenDictBackedImmutableDict(self._dict)
+                return _FrozenDictBackedImmutableDict(self._dict)
             else:
                 return _EMPTY
 
 
 @attrs(frozen=True, slots=True, repr=False)
-class FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
+class _FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
 
     # Mypy does not believe this is a valid converter, but it is
     _dict = attrib(converter=frozendict)  # type:ignore
@@ -170,4 +216,4 @@ class FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
 
 
 # Singleton instance for empty
-_EMPTY: ImmutableDict = FrozenDictBackedImmutableDict({})
+_EMPTY: ImmutableDict = _FrozenDictBackedImmutableDict({})

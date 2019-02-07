@@ -1,6 +1,5 @@
 import random
 import pytest
-from immutablecollections import ImmutableList
 from immutablecollections import ImmutableDict, ImmutableList
 
 empty_tuple = ()

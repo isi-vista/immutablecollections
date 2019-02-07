@@ -20,9 +20,8 @@ from typing import (
 from attr import attrib, attrs
 from frozendict import frozendict
 
-from immutablecollections import ImmutableList, ImmutableSet
+from immutablecollections import immutablelist, ImmutableList, ImmutableSet
 from immutablecollections.immutablecollection import ImmutableCollection
-from immutablecollections.immutablelist import EMPTY_IMMUTABLE_LIST
 
 KT = TypeVar("KT")
 VT = TypeVar("VT")
@@ -34,6 +33,62 @@ VT2 = TypeVar("VT2")
 IT2 = Tuple[KT2, VT2]  # item type
 
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
+
+
+def immutablesetmultidict(
+    iterable: Optional[Iterable[Tuple[KT, VT]]] = None
+) -> "ImmutableSetMultiDict[" "KT, VT]":
+    """
+    Create an ``ImmutableSetMultiDict`` with the given mappings.
+
+    Mappings are specified as a sequence of key-value pairs.
+
+    The iteration order of the keys will match the order of their first appearance in
+    *iterable*. The iteration order of the items will be ordered first by key, then by the order of
+    the appearance of that value's association with the key on *iterable*.
+
+    If *iterable* is already an ``ImmutableSetMultiDict``, *iterable* itself will be returned.
+    """
+    # immutablesetmultidict() should return an empty collection
+    if iterable is None:
+        # key and value types don't matter on an empty collection
+        return _EMPTY_IMMUTABLE_SET_MULTIDICT  # type: ignore
+
+    if isinstance(iterable, ImmutableSetMultiDict):
+        # if an ImmutableSetMultiDict is input, we can safely just return it,
+        # since the object can safely be shared
+        return iterable
+
+    # TODO: fold the construction logic into here for better efficiency
+    return ImmutableSetMultiDict.of(iterable)
+
+
+def immutablelistmultidict(
+    iterable: Optional[Iterable[Tuple[KT, VT]]] = None
+) -> "ImmutableListMultiDict[KT, VT]":
+    """
+    Create an ``ImmutableListMultiDict`` with the given mappings.
+
+    Mappings are specified as a sequence of key-value pairs.
+
+    The iteration order of the keys will match the order of their first appearance in
+    *iterable*. The iteration order of the items will be ordered first by key, then by the order of
+    the appearance of that value's association with the key on *iterable*.
+
+    If *iterable* is already an ``ImmutableListMultiDict``, *iterable* itself will be returned.
+    """
+    # immutablelistmultidict() should return an empty collection
+    if iterable is None:
+        # key and value types don't matter on an empty collection
+        return _EMPTY_IMMUTABLE_LIST_MULTIDICT  # type: ignore
+
+    if isinstance(iterable, ImmutableListMultiDict):
+        # if an ImmutableListMultiDict is input, we can safely just return it,
+        # since the object can safely be shared
+        return iterable
+
+    # TODO: fold the construction logic into here for better efficiency
+    return ImmutableListMultiDict.of(iterable)
 
 
 class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABCMeta):
@@ -289,7 +344,10 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                 ] = FrozenDictBackedImmutableSetMultiDict(
                     {k: v.build() for (k, v) in self._dict.items()}  # type: ignore
                 )
-                return result if result else _SET_EMPTY
+                # item type doesn't matter on empty collections
+                return (
+                    result if result else _EMPTY_IMMUTABLE_SET_MULTIDICT
+                )  # type: ignore
             else:
                 # noinspection PyTypeChecker
                 return self._source  # type: ignore
@@ -357,7 +415,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
 
     @staticmethod
     def empty() -> "ImmutableListMultiDict[KT, VT]":
-        return _EMPTY_IMMUTABLE_MULTIDICT
+        return _EMPTY_IMMUTABLE_LIST_MULTIDICT  # type: ignore
 
     @staticmethod
     def builder() -> "ImmutableListMultiDict.Builder[KT, VT]":
@@ -475,7 +533,9 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                 ] = FrozenDictBackedImmutableListMultiDict(
                     {k: v.build() for (k, v) in self._dict.items()}  # type: ignore
                 )
-                return result if result else _EMPTY_IMMUTABLE_MULTIDICT
+                return (
+                    result if result else _EMPTY_IMMUTABLE_LIST_MULTIDICT
+                )  # type: ignore
             else:
                 # noinspection PyTypeChecker
                 return self._source  # type: ignore
@@ -489,6 +549,9 @@ def _freeze_list_multidict(
     return frozendict({k: ImmutableList.of(v) for (k, v) in x.items()})
 
 
+_EMPTY_IMMUTABLE_LIST: ImmutableList[Any] = immutablelist()
+
+
 @attrs(frozen=True, slots=True, repr=False)
 class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
     _dict: Mapping[KT, ImmutableList[VT]] = attrib(converter=_freeze_list_multidict)
@@ -498,7 +561,7 @@ class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
         return self._dict
 
     def __getitem__(self, k: KT) -> ImmutableList[VT]:
-        return self._dict.get(k, EMPTY_IMMUTABLE_LIST)
+        return self._dict.get(k, _EMPTY_IMMUTABLE_LIST)
 
     def __len__(self) -> int:  # pylint:disable=invalid-length-returned
         """
@@ -512,7 +575,8 @@ class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
 
 
 # Singleton instance for empty
-_EMPTY_IMMUTABLE_MULTIDICT: ImmutableListMultiDict = FrozenDictBackedImmutableListMultiDict(
+_EMPTY_IMMUTABLE_SET_MULTIDICT = FrozenDictBackedImmutableSetMultiDict({})  # type: ignore
+_EMPTY_IMMUTABLE_LIST_MULTIDICT = FrozenDictBackedImmutableListMultiDict(  # type: ignore
     {}
 )
 
