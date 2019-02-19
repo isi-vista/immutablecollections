@@ -73,6 +73,13 @@ def immutabledict(
 
 
 class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta):
+    """
+    A ``Mapping`` implementation which is locally immutable.
+
+    The hash code is computed and cached as if this map is deeply immutable.
+    If this is not true, you should not use ``ImmutableDict`` as a set member or hash key.
+    """
+
     __slots__ = ()
 
     # Signature of the of method varies by collection
@@ -195,7 +202,7 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
                 return _EMPTY
 
 
-@attrs(frozen=True, slots=True, repr=False)
+@attrs(frozen=True, slots=True, repr=False, cmp=False, hash=False)
 class _FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
 
     # Mypy does not believe this is a valid converter, but it is
@@ -213,6 +220,9 @@ class _FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
     # Could allow the Mapping ABC to do this for us, but this is more direct
     def __contains__(self, x: object) -> bool:
         return self._dict.__contains__(x)
+
+    def __hash__(self) -> int:
+        return hash(self._dict)
 
 
 # Singleton instance for empty

@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from unittest import TestCase
 
 from immutablecollections import immutabledict, ImmutableDict
@@ -55,6 +55,15 @@ class TestImmutableDict(TestCase):
         self.assertEqual(d[dict2], val)
         self.assertEqual(hash(dict2), hash(dict1))
         self.assertTrue(dict3 not in d)
+
+        # test comparison with regular dicts
+        f = {"foo": "bar", "oof": "rab"}
+        immutable_f = immutabledict(f)
+        self.assertEqual(immutable_f, f)
+        self.assertEqual(f, immutable_f)
+
+        # ensure ImmutableDict is hashable
+        hash(immutable_f)
 
     def test_immutable(self):
         source = {"a": 1}

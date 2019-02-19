@@ -95,11 +95,9 @@ def immutableset(
 
     if iteration_order:
         if len(iteration_order) == 1:
-            return _SingletonImmutableSet(iteration_order[0], top_level_type=None)
+            return _SingletonImmutableSet(iteration_order[0], None)
         else:
-            return _FrozenSetBackedImmutableSet(
-                containment_set, iteration_order, top_level_type=None
-            )
+            return _FrozenSetBackedImmutableSet(containment_set, iteration_order, None)
     else:
         return _EMPTY
 
@@ -503,8 +501,8 @@ class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
 
     def __eq__(self, other):
         # pylint:disable=protected-access
-        if isinstance(other, _FrozenSetBackedImmutableSet):
-            return self._set == other._set
+        if isinstance(other, AbstractSet):
+            return self._set == other
         else:
             return False
 
@@ -554,13 +552,13 @@ class _SingletonImmutableSet(ImmutableSet[T]):
 
     def __eq__(self, other):
         # pylint:disable=protected-access
-        if isinstance(other, _SingletonImmutableSet):
-            return self._single_value == other._single_value
+        if isinstance(other, AbstractSet):
+            return len(other) == 1 and self._single_value in other
         else:
             return False
 
     def __hash__(self):
-        return 1 + self._single_value.__hash__()
+        return hash(frozenset((self._single_value,)))
 
 
 # Singleton instance for empty

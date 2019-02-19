@@ -41,15 +41,37 @@ class TestImmutableSet(TestCase):
         set1 = immutableset((1, 2, 3))
         set2 = immutableset((1, 2, 3))
         set3 = immutableset((1, 2))
+        set4 = immutableset((3, 1, 2))
 
         self.assertEqual(set1, set2)
         self.assertNotEqual(set1, set3)
+        self.assertEqual(set1, set4)
 
         val = object()
         d = {set1: val}
         self.assertEqual(d[set2], val)
         self.assertEqual(hash(set2), hash(set1))
         self.assertTrue(set3 not in d)
+
+        # hash does not rely on order
+        self.assertEqual(hash(set1), hash(set4))
+
+        # equality with built-in types
+        self.assertEqual({1, 2, 3}, set4)
+        self.assertEqual(set4, {1, 2, 3})
+        singleton_set = immutableset([2])
+        self.assertEqual({2}, singleton_set)
+        self.assertEqual(singleton_set, {2})
+        self.assertEqual(set(), immutableset())
+        self.assertEqual(immutableset(), set())
+
+        self.assertEqual(frozenset([1, 2, 3]), set4)
+        self.assertEqual(set4, frozenset([1, 2, 3]))
+
+        # hash matches frozenset hash
+        self.assertEqual(hash(frozenset([1, 2, 3])), hash(set4))
+        self.assertEqual(hash(frozenset([2])), hash(singleton_set))
+        self.assertEqual(hash(frozenset()), hash(immutableset()))
 
     def test_immutable(self):
         source = [1, 2, 3]
