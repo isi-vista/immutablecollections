@@ -1,3 +1,13 @@
+Immutablecollections 0.6.0 (2019-02-19)
+=======================================
+
+New Features
+------------
+
+- ImmutableDict supports equality comparison with `dict`.
+  ImmutableSet supports equality comparison with `set` and `frozenset`. (`#33 <https://github.com/isi-vista/immutablecollections/issues/33>`_)
+
+
 Immutablecollections 0.5.0 (2019-02-07)
 =======================================
 
