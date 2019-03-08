@@ -32,6 +32,7 @@ T = TypeVar("T")  # pylint:disable=invalid-name
 # necessary because inner classes cannot share typevars
 T2 = TypeVar("T2")  # pylint:disable=invalid-name
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
+ViewTypes = (KeysView, ValuesView, ItemsView)  # pylint:disable=invalid-name
 
 
 def immutableset(
@@ -61,30 +62,31 @@ def immutableset(
         return iterable
 
     if not disable_order_check:
-        # case where iterable is an ImmutableSet (which is order-safe)
-        # is already checked above
-        if isinstance(iterable, AbstractSet):
-            raise ValueError(
-                "Attempting to initialize an ImmutableSet from "
-                "a non-ImmutableSet set. This probably loses "
-                "determinism in iteration order.  If you don't care "
-                "or are otherwise sure your input has determinstic "
-                "iteration order, specify disable_order_check=True"
-            )
-        # we put this check on the outside to avoid isinstance checks on newer Python versions
         if not DICT_ITERATION_IS_DETERMINISTIC:
-            if (
-                isinstance(iterable, KeysView)
-                or isinstance(iterable, ValuesView)
-                or isinstance(iterable, ItemsView)
-            ):
+            # See https://github.com/isi-vista/immutablecollections/pull/36
+            # for benchmarks as to why the split conditional is faster even
+            # with short-circuiting.
+            if isinstance(iterable, ViewTypes):
                 raise ValueError(
                     "Attempting to initialize an ImmutableSet from "
                     "a dict view. On this Python version, this probably loses "
                     "determinism in iteration order.  If you don't care "
-                    "or are otherwise sure your input has determinstic "
+                    "or are otherwise sure your input has deterministic "
                     "iteration order, specify disable_order_check=True"
                 )
+        if isinstance(iterable, AbstractSet) and not isinstance(iterable, ViewTypes):
+            # dict order is deterministic in this interpreter, so order
+            # of KeysView and ItemsView from standard dicts will be as well.
+            # These could be user implementations of this interface which are
+            # non-deterministic, but this check is just a courtesy to catch the
+            # most common cases anyway.
+            raise ValueError(
+                "Attempting to initialize an ImmutableSet from "
+                "a non-ImmutableSet set. This probably loses "
+                "determinism in iteration order.  If you don't care "
+                "or are otherwise sure your input has deterministic "
+                "iteration order, specify disable_order_check=True"
+            )
 
     iteration_order = []
     containment_set: MutableSet[T] = set()

@@ -18,6 +18,11 @@
         name = "New Features"
         showcontent = true
 
+    [[tool.towncrier.type]]
+        directory = "Bugfix"
+        name = "Bug Fixes"
+        showcontent = true
+
 [tool.black]
 line-length = 90
 

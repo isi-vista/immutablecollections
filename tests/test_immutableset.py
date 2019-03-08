@@ -1,7 +1,8 @@
 from collections.abc import Set
 from unittest import TestCase
+from unittest.mock import patch
 
-from immutablecollections import ImmutableList, ImmutableSet, immutableset
+from immutablecollections import ImmutableSet, immutableset
 
 
 class TestImmutableSet(TestCase):
@@ -224,3 +225,34 @@ class TestImmutableSet(TestCase):
         source = (1, 2, 3)
         dict1 = immutableset(source)
         return next(iter(dict1))
+
+    # A reminder that when patching, it must be done where used, not where it is defined.
+    @patch("immutablecollections._immutableset.DICT_ITERATION_IS_DETERMINISTIC", False)
+    def test_dict_iteration_is_not_deterministic(self):
+        source = {"b": 2, "c": 3, "a": 1}
+        value_error_regex = r"Attempting to initialize an ImmutableSet from a dict view\."
+        with self.assertRaisesRegex(ValueError, value_error_regex):
+            immutableset(source.keys())
+        with self.assertRaisesRegex(ValueError, value_error_regex):
+            immutableset(source.values())
+        with self.assertRaisesRegex(ValueError, value_error_regex):
+            immutableset(source.items())
+
+        with self.assertRaisesRegex(
+            ValueError,
+            r"Attempting to initialize an ImmutableSet from a non-ImmutableSet set\.",
+        ):
+            immutableset({"b", "c", "a"})
+
+    @patch("immutablecollections._immutableset.DICT_ITERATION_IS_DETERMINISTIC", True)
+    def test_dict_iteration_is_deterministic(self):
+        source = {"b": 2, "c": 3, "a": 1}
+        immutableset(source.keys())
+        immutableset(source.values())
+        immutableset(source.items())
+
+        with self.assertRaisesRegex(
+            ValueError,
+            r"Attempting to initialize an ImmutableSet from a non-ImmutableSet set\.",
+        ):
+            immutableset({"b", "c", "a"})
