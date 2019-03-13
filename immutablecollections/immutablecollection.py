@@ -11,6 +11,11 @@ class ImmutableCollection(Generic[T], Iterable[T], metaclass=ABCMeta):
     def __iter__(self) -> Iterator[T]:
         raise NotImplementedError()
 
+    # TODO this can be abstract when ImmutableList goes away
+    # @abstractmethod
+    def __reduce__(self):
+        raise NotImplementedError()
+
     # TODO: of/empty needed to avoid warnings for attrib_opt_immutable, but are they a good idea?
     @staticmethod
     @abstractmethod
