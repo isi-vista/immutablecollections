@@ -146,6 +146,9 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
     def __str__(self):
         return "{%s}" % ", ".join(["%s: %s" % item for item in self.items()])
 
+    def __reduce__(self):
+        return (immutabledict, (list(self.items()),))
+
     class Builder(Generic[KT2, VT2]):
         def __init__(self, source: "ImmutableDict[KT2,VT2]" = None) -> None:
             self._dict: MutableMapping[KT2, VT2] = {}
