@@ -136,5 +136,5 @@ class TestImmutableDict(TestCase):
         )
         self.assertEqual(
             immutabledict([(5, "apple"), (2, "banana")]).__reduce__(),
-            (immutabledict, ([(5, "apple"), (2, "banana")],)),
+            (immutabledict, (((5, "apple"), (2, "banana")),)),
         )

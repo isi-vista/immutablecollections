@@ -299,7 +299,10 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
     def __reduce__(self):
-        return (immutablesetmultidict, (list(self.items()),))
+        _repr = ()
+        if self:
+            _repr = tuple(self.items())
+        return (immutablesetmultidict, (_repr,))
 
     class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
         def __init__(
@@ -501,7 +504,10 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
     def __reduce__(self):
-        return (immutablelistmultidict, (list(self.items()),))
+        _repr = ()
+        if self:
+            _repr = tuple(self.items())
+        return (immutablelistmultidict, (_repr,))
 
     class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
         def __init__(

@@ -113,8 +113,14 @@ class TestImmutableSetMultiDict(TestCase):
             immutablesetmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]),
         )
         self.assertEqual(
+            pickle.loads(pickle.dumps(immutablesetmultidict())), immutablesetmultidict()
+        )
+        self.assertEqual(
             immutablesetmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]).__reduce__(),
-            (immutablesetmultidict, ([(1, (2, 2, 3, 6)), (4, (5, 6))],)),
+            (immutablesetmultidict, (((1, (2, 2, 3, 6)), (4, (5, 6))),)),
+        )
+        self.assertEqual(
+            immutablesetmultidict().__reduce__(), (immutablesetmultidict, ((),))
         )
 
 
@@ -231,6 +237,12 @@ class TestImmutableListMultiDict(TestCase):
             immutablelistmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]),
         )
         self.assertEqual(
+            pickle.loads(pickle.dumps(immutablelistmultidict())), immutablelistmultidict()
+        )
+        self.assertEqual(
             immutablelistmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]).__reduce__(),
-            (immutablelistmultidict, ([(1, (2, 2, 3, 6)), (4, (5, 6))],)),
+            (immutablelistmultidict, (((1, (2, 2, 3, 6)), (4, (5, 6))),)),
+        )
+        self.assertEqual(
+            immutablelistmultidict().__reduce__(), (immutablelistmultidict, ((),))
         )
