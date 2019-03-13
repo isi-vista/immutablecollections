@@ -525,6 +525,9 @@ class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
     def __hash__(self):
         return self._set.__hash__()
 
+    def __reduce__(self):
+        return (immutableset, (self._iteration_order,))
+
 
 class _SingletonImmutableSet(ImmutableSet[T]):
     __slots__ = "_single_value", "_top_level_type"
@@ -576,6 +579,9 @@ class _SingletonImmutableSet(ImmutableSet[T]):
 
     def __hash__(self):
         return hash(frozenset((self._single_value,)))
+
+    def __reduce__(self):
+        return (immutableset, ((self._single_value,),))
 
 
 # Singleton instance for empty
