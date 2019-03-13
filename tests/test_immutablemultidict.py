@@ -1,3 +1,4 @@
+import pickle
 from collections import Mapping
 from unittest import TestCase
 
@@ -104,6 +105,18 @@ class TestImmutableSetMultiDict(TestCase):
         self.assertEqual(reference_set_based, x.invert_to_set_multidict())
         self.assertEqual(reference_list_based, x.invert_to_list_multidict())
 
+    def test_pickling(self):
+        self.assertEqual(
+            pickle.loads(
+                pickle.dumps(immutablesetmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]))
+            ),
+            immutablesetmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]),
+        )
+        self.assertEqual(
+            immutablesetmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]).__reduce__(),
+            (immutablesetmultidict, ([(1, (2, 2, 3, 6)), (4, (5, 6))],)),
+        )
+
 
 class TestImmutableListMultiDict(TestCase):
     def test_empty(self):
@@ -209,3 +222,15 @@ class TestImmutableListMultiDict(TestCase):
         )
         self.assertEqual(reference_set_based, x.invert_to_set_multidict())
         self.assertEqual(reference_list_based, x.invert_to_list_multidict())
+
+    def test_pickling(self):
+        self.assertEqual(
+            pickle.loads(
+                pickle.dumps(immutablelistmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]))
+            ),
+            immutablelistmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]),
+        )
+        self.assertEqual(
+            immutablelistmultidict([(1, (2, 2, 3, 6)), (4, (5, 6))]).__reduce__(),
+            (immutablelistmultidict, ([(1, (2, 2, 3, 6)), (4, (5, 6))],)),
+        )

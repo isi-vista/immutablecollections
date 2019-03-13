@@ -298,12 +298,15 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         # need the "i" prefix they add with repr
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
+    def __reduce__(self):
+        return (immutablesetmultidict, (list(self.items()),))
+
     class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
         def __init__(
             self,
             *,
             source: Optional["ImmutableMultiDict[KT2,VT2]"] = None,
-            order_key: Callable[[VT2], Any] = None
+            order_key: Callable[[VT2], Any] = None,
         ) -> None:
             self._dict: MutableMapping[KT2, ImmutableSet.Builder[VT2]] = defaultdict(
                 lambda: ImmutableSet.builder(order_key=order_key)
@@ -374,7 +377,7 @@ class FrozenDictBackedImmutableSetMultiDict(ImmutableSetMultiDict[KT, VT]):
     # pylint:disable=assigning-non-slot
     def __init__(
         self, init_dict: Mapping[KT, ImmutableSet[VT]], init_len: Optional[int] = None
-    ):
+    ) -> None:
         self._dict = _freeze_set_multidict(init_dict)
         # The length (total number of key-value mappings) is cached
         # to avoid unnecessary length calls to immutable (unchanging) value groups.
@@ -497,6 +500,9 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         # need the "i" prefix they add with repr
         return "{%s}" % ", ".join("%r: %s" % item for item in self.as_dict().items())
 
+    def __reduce__(self):
+        return (immutablelistmultidict, (list(self.items()),))
+
     class Builder(Generic[KT2, VT2], ImmutableMultiDict.Builder[KT2, VT2]):
         def __init__(
             self, *, source: Optional["ImmutableMultiDict[KT2,VT2]"] = None
@@ -572,7 +578,9 @@ class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
     __slots__ = "_dict", "_len"
 
     # pylint:disable=assigning-non-slot,redefined-builtin
-    def __init__(self, dict: Mapping[KT, ImmutableList[VT]], len: Optional[int] = None):
+    def __init__(
+        self, dict: Mapping[KT, ImmutableList[VT]], len: Optional[int] = None
+    ) -> None:
         self._dict = _freeze_list_multidict(dict)
         self._len = len
 
