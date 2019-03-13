@@ -13,7 +13,6 @@ from typing import (
     MutableMapping,
 )
 
-from attr import attrs, attrib
 from frozendict import frozendict
 
 from immutablecollections.immutablecollection import ImmutableCollection
@@ -202,11 +201,12 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
                 return _EMPTY
 
 
-@attrs(frozen=True, slots=True, repr=False, cmp=False, hash=False)
 class _FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
+    __slots__ = ("_dict",)
 
-    # Mypy does not believe this is a valid converter, but it is
-    _dict = attrib(converter=frozendict)  # type:ignore
+    # pylint:disable=assigning-non-slot
+    def __init__(self, init_dict) -> None:
+        self._dict: Mapping[KT, VT] = frozendict(init_dict)
 
     def __getitem__(self, k: KT) -> VT:
         return self._dict.__getitem__(k)

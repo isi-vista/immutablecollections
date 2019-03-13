@@ -17,7 +17,6 @@ from typing import (
     ValuesView,
 )  # pylint:disable=unused-import
 
-from attr import attrib, attrs
 from frozendict import frozendict
 
 from immutablecollections import immutablelist, ImmutableList, ImmutableSet
@@ -52,7 +51,7 @@ def immutablesetmultidict(
     # immutablesetmultidict() should return an empty collection
     if iterable is None:
         # key and value types don't matter on an empty collection
-        return _EMPTY_IMMUTABLE_SET_MULTIDICT  # type: ignore
+        return _EMPTY_IMMUTABLE_SET_MULTIDICT
 
     if isinstance(iterable, ImmutableSetMultiDict):
         # if an ImmutableSetMultiDict is input, we can safely just return it,
@@ -80,7 +79,7 @@ def immutablelistmultidict(
     # immutablelistmultidict() should return an empty collection
     if iterable is None:
         # key and value types don't matter on an empty collection
-        return _EMPTY_IMMUTABLE_LIST_MULTIDICT  # type: ignore
+        return _EMPTY_IMMUTABLE_LIST_MULTIDICT
 
     if isinstance(iterable, ImmutableListMultiDict):
         # if an ImmutableListMultiDict is input, we can safely just return it,
@@ -128,6 +127,16 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
         for key in self.keys():
             for val in self[key]:
                 yield (key, val)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        if self.keys() != other.keys():
+            return False
+        for key in self.keys():
+            if self.__getitem__(key) != other[key]:
+                return False
+        return True
 
     @abstractmethod
     def __len__(self) -> int:
@@ -359,10 +368,17 @@ def _freeze_set_multidict(x: Mapping[KT, Iterable[VT]]) -> Mapping[KT, Immutable
     return frozendict({k: ImmutableSet.of(v) for (k, v) in x.items()})
 
 
-@attrs(frozen=True, slots=True, repr=False)
 class FrozenDictBackedImmutableSetMultiDict(ImmutableSetMultiDict[KT, VT]):
-    _dict: Mapping[KT, ImmutableSet[VT]] = attrib(converter=_freeze_set_multidict)
-    _len: Optional[int] = attrib(init=False, cmp=False, default=None)
+    __slots__ = "_dict", "_len"
+
+    # pylint:disable=assigning-non-slot
+    def __init__(
+        self, init_dict: Mapping[KT, ImmutableSet[VT]], init_len: Optional[int] = None
+    ):
+        self._dict = _freeze_set_multidict(init_dict)
+        # The length (total number of key-value mappings) is cached
+        # to avoid unnecessary length calls to immutable (unchanging) value groups.
+        self._len = init_len
 
     def as_dict(self) -> Mapping[KT, ImmutableSet[VT]]:
         """
@@ -378,7 +394,7 @@ class FrozenDictBackedImmutableSetMultiDict(ImmutableSetMultiDict[KT, VT]):
 
     def __len__(self) -> int:  # pylint:disable=invalid-length-returned
         """
-        Get the numeber of key-value mappings in this multidict.
+        Get the number of key-value mappings in this multidict.
         """
         if self._len is None:
             object.__setattr__(
@@ -552,10 +568,13 @@ def _freeze_list_multidict(
 _EMPTY_IMMUTABLE_LIST: ImmutableList[Any] = immutablelist()
 
 
-@attrs(frozen=True, slots=True, repr=False)
 class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
-    _dict: Mapping[KT, ImmutableList[VT]] = attrib(converter=_freeze_list_multidict)
-    _len: Optional[int] = attrib(init=False, cmp=False, default=None)
+    __slots__ = "_dict", "_len"
+
+    # pylint:disable=assigning-non-slot,redefined-builtin
+    def __init__(self, dict: Mapping[KT, ImmutableList[VT]], len: Optional[int] = None):
+        self._dict = _freeze_list_multidict(dict)
+        self._len = len
 
     def as_dict(self) -> Mapping[KT, ImmutableList[VT]]:
         return self._dict
@@ -565,7 +584,7 @@ class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
 
     def __len__(self) -> int:  # pylint:disable=invalid-length-returned
         """
-        Get the numeber of key-value mappings in this multidict.
+        Get the number of key-value mappings in this multidict.
         """
         if self._len is None:
             object.__setattr__(

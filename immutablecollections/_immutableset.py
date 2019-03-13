@@ -22,9 +22,6 @@ from typing import (
     ValuesView,
 )
 
-import attr
-from attr import attrib, attrs, validators
-
 from immutablecollections import immutablecollection
 from immutablecollections._utils import DICT_ITERATION_IS_DETERMINISTIC
 
@@ -43,7 +40,7 @@ def immutableset(
 
     The iteration order of the created set will match *iterable*.  Note that for this reason,
     when initializing an ``ImmutableSet`` from a constant collection expression, prefer a
-    list over a set.  We attempt to catch a handful of common cases in which determinsitic
+    list over a set.  We attempt to catch a handful of common cases in which deterministic
     iteration order would be discarded: initializing from a (non-``ImmutableSet``) set or
     (on CPython < 3.6.0 and other Pythons < 3.7.0) initializing from a dictionary view. In
     these cases we will throw an exception as a warning to the programmer, but this behavior
@@ -140,7 +137,7 @@ class ImmutableSet(
     @staticmethod
     def of(
         seq: Iterable[T], check_top_type_matches=None, require_ordered_input=False
-    ) -> "ImmutableSet[T]":  # typing: ignore
+    ) -> "ImmutableSet[T]":
         """
         Deprecated - prefer ``immutableset`` module-level factory method.
         """
@@ -309,16 +306,29 @@ class ImmutableSet(
 
 
 # When modifying this class, make sure any relevant changes are also made to _NoTypeCheckingBuilder
-@attrs
 class _TypeCheckingBuilder(ImmutableSet.Builder[T]):
-    _set: AbstractSet[T] = attrib(default=attr.Factory(set))
-    _iteration_order: List[T] = attrib(default=attr.Factory(list))
-    # this is messy because we can't use attrutils or we would end up with a circular import
-    _top_level_type: Type = attrib(
-        validator=validators.instance_of((type, type(None))), default=None  # type: ignore
-    )
-    _require_ordered_input = attrib(validator=validators.instance_of(bool), default=False)
-    _order_key: Callable[[T], Any] = attrib(default=None)
+    def __init__(
+        self,
+        top_level_type: Type = None,
+        require_ordered_input: bool = False,
+        order_key: Callable[[T], Any] = None,
+    ) -> None:
+        if not isinstance(top_level_type, (type, type(None))):
+            raise TypeError(
+                f"Expected instance of type {type:!r} or {type(None):!r} "
+                f"but got type {type(top_level_type):!r} for top_level_type instead"
+            )
+        self._top_level_type = top_level_type
+        if not isinstance(require_ordered_input, bool):
+            raise TypeError(
+                f"Expected instance of type {bool:!r} "
+                "but got type {type(require_ordered_input):!r} for require_ordered_input instead"
+            )
+        self._require_ordered_input = require_ordered_input
+        self._order_key = order_key
+
+        self._set: AbstractSet[T] = set()
+        self._iteration_order: List[T] = list()
 
     def add(self: SelfType, item: T) -> SelfType:
         # Any changes made to add should also be made to add_all
@@ -377,8 +387,7 @@ class _TypeCheckingBuilder(ImmutableSet.Builder[T]):
         if self._set:
             if len(self._set) > 1:
                 if self._order_key:
-                    # mypy is confused
-                    self._iteration_order.sort(key=self._order_key)  # type: ignore
+                    self._iteration_order.sort(key=self._order_key)
                 return _FrozenSetBackedImmutableSet(
                     self._set, self._iteration_order, top_level_type=self._top_level_type
                 )
@@ -391,13 +400,20 @@ class _TypeCheckingBuilder(ImmutableSet.Builder[T]):
 
 
 # When modifying this class, make sure any relevant changes are also made to _TypeCheckingBuilder
-@attrs
 class _NoTypeCheckingBuilder(ImmutableSet.Builder[T]):
-    _set: AbstractSet[T] = attrib(default=attr.Factory(set))
-    _iteration_order: List[T] = attrib(default=attr.Factory(list))
-    # this is messy because we can't use attrutils or we would end up with a circular import
-    _require_ordered_input = attrib(validator=validators.instance_of(bool), default=False)
-    _order_key: Callable[[T], Any] = attrib(default=None)
+    def __init__(
+        self, require_ordered_input: bool = False, order_key: Callable[[T], Any] = None
+    ) -> None:
+        if not isinstance(require_ordered_input, bool):
+            raise TypeError(
+                f"Expected instance of type {bool:!r} "
+                "but got type {type(require_ordered_input):!r} for require_ordered_input instead"
+            )
+        self._require_ordered_input = require_ordered_input
+        self._order_key = order_key
+
+        self._set: AbstractSet[T] = set()
+        self._iteration_order: List[T] = list()
 
     def add(self: SelfType, item: T) -> SelfType:
         # Any changes made to add should also be made to add_all
@@ -441,8 +457,7 @@ class _NoTypeCheckingBuilder(ImmutableSet.Builder[T]):
         if self._set:
             if len(self._set) > 1:
                 if self._order_key:
-                    # mypy is confused
-                    self._iteration_order.sort(key=self._order_key)  # type: ignore
+                    self._iteration_order.sort(key=self._order_key)
                 return _FrozenSetBackedImmutableSet(
                     self._set, self._iteration_order, top_level_type=None
                 )
@@ -454,27 +469,26 @@ class _NoTypeCheckingBuilder(ImmutableSet.Builder[T]):
             return _EMPTY
 
 
-# cmp=False is necessary because the attrs-generated comparison methods
-# don't obey the set contract
-@attrs(frozen=True, slots=True, repr=False, cmp=False)
 class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
     """
     Implementing class for the general case for ImmutableSet.
 
     This class should *never*
     be directly instantiated by users or the ImmutableSet contract may fail to be satisfied!
-
-    Note this must explictly override eq and hash because cmp=False above.
     """
 
-    _set: FrozenSet[T] = attrib(converter=frozenset)
-    # because only the set contents should matter for equality, we set cmp=False hash=False
-    # on the remaining attributes
-    # Mypy does not believe this is a valid converter, but it is
-    _iteration_order: Tuple[T, ...] = attrib(
-        converter=tuple, cmp=False, hash=False  # type: ignore
-    )
-    _top_level_type: Optional[Type] = attrib(cmp=False, hash=False)
+    __slots__ = "_set", "_iteration_order", "_top_level_type"
+
+    # pylint:disable=assigning-non-slot
+    def __init__(
+        self,
+        init_set: Iterable[T],
+        iteration_order: Sequence[T],
+        top_level_type: Optional[Type],
+    ) -> None:
+        self._set: FrozenSet[T] = frozenset(init_set)
+        self._iteration_order = tuple(iteration_order)
+        self._top_level_type = top_level_type
 
     def __iter__(self) -> Iterator[T]:
         return self._iteration_order.__iter__()
@@ -512,12 +526,13 @@ class _FrozenSetBackedImmutableSet(ImmutableSet[T]):
         return self._set.__hash__()
 
 
-# cmp=False is necessary because the attrs-generated comparison methods
-# don't obey the set contract
-@attrs(frozen=True, slots=True, repr=False, cmp=False)
 class _SingletonImmutableSet(ImmutableSet[T]):
-    _single_value: T = attrib()
-    _top_level_type: Optional[Type] = attrib(cmp=False, hash=False)
+    __slots__ = "_single_value", "_top_level_type"
+
+    # pylint:disable=assigning-non-slot
+    def __init__(self, single_value: T, top_level_type: Optional[Type]) -> None:
+        self._single_value = single_value
+        self._top_level_type = top_level_type
 
     def __iter__(self) -> Iterator[T]:
         return iter((self._single_value,))

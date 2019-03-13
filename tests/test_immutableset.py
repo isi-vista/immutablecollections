@@ -106,6 +106,8 @@ class TestImmutableSet(TestCase):
         self.assertTrue(isinstance(set1, Set))
 
     def test_slots(self):
+        self.assertFalse(hasattr(immutableset(), "__dict__"))
+        self.assertFalse(hasattr(immutableset([1]), "__dict__"))
         self.assertFalse(hasattr(immutableset([1, 2, 3]), "__dict__"))
 
     def test_repr(self):
