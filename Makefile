@@ -41,7 +41,7 @@ coverage-all:
 	$(NOSE_ALL_COVERAGE)
 
 benchmark:
-	pytest benchmarks --benchmark-timer=time.process_time 
+	pytest benchmarks --benchmark-timer=time.process_time --benchmark-autosave --benchmark-save-data
 
 lint:
 	$(PYLINT)
