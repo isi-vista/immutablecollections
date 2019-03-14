@@ -95,7 +95,11 @@ def immutablelistmultidict(
 
 
 class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABCMeta):
-    __slots__ = ()
+    __slots__ = ("_hash",)
+
+    # pylint:disable=assigning-non-slot
+    def __init__(self) -> None:
+        self._hash: int = None
 
     def value_groups(self) -> ValuesView[Collection[VT]]:
         """
@@ -132,7 +136,7 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
             for val in self[key]:
                 yield (key, val)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
             return False
         if self.keys() != other.keys():
@@ -141,6 +145,14 @@ class ImmutableMultiDict(ImmutableCollection[KT], Generic[KT, VT], metaclass=ABC
             if self.__getitem__(key) != other[key]:
                 return False
         return True
+
+    def __hash__(self) -> int:
+        if self._hash is None:
+            h = 0
+            for key, value in self.items():
+                h ^= hash((key, value))
+            self._hash = h
+        return self._hash
 
     @abstractmethod
     def __len__(self) -> int:
@@ -385,6 +397,7 @@ class FrozenDictBackedImmutableSetMultiDict(ImmutableSetMultiDict[KT, VT]):
     def __init__(
         self, init_dict: Mapping[KT, ImmutableSet[VT]], init_len: Optional[int] = None
     ) -> None:
+        super(FrozenDictBackedImmutableSetMultiDict, self).__init__()
         self._dict = _freeze_set_multidict(init_dict)
         # The length (total number of key-value mappings) is cached
         # to avoid unnecessary length calls to immutable (unchanging) value groups.
@@ -591,6 +604,7 @@ class FrozenDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
     def __init__(
         self, dict: Mapping[KT, ImmutableList[VT]], len: Optional[int] = None
     ) -> None:
+        super(FrozenDictBackedImmutableListMultiDict, self).__init__()
         self._dict = _freeze_list_multidict(dict)
         self._len = len
 

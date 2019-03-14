@@ -91,6 +91,9 @@ class TestImmutableSetMultiDict(TestCase):
         # len's implementation often does caching, so test it works twice
         self.assertEqual(4, len(x))
 
+    def test_hash(self):
+        hash(immutablesetmultidict({1: [2, 2, 3], 4: [5, 6]}))
+
     def test_inversion(self):
         x = ImmutableSetMultiDict.of({1: [2, 2, 3, 6], 4: [5, 6]})
         # when you start from a set multidict, your inverses as a list
@@ -152,6 +155,9 @@ class TestImmutableListMultiDict(TestCase):
 
     def test_str(self):
         self.assertEqual("{1: [2, 2, 3]}", str(ImmutableListMultiDict.of({1: [2, 2, 3]})))
+
+    def test_hash(self):
+        hash(immutablelistmultidict({1: [2, 2, 3], 4: [5, 6]}))
 
     def test_immutable_keys(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
