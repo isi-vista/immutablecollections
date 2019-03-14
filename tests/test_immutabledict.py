@@ -1,4 +1,5 @@
-from collections.abc import Mapping, MutableMapping
+import pickle
+from collections.abc import Mapping
 from unittest import TestCase
 
 from immutablecollections import immutabledict, ImmutableDict
@@ -127,3 +128,13 @@ class TestImmutableDict(TestCase):
         source: Mapping[str, int] = {"a": 1}
         dict1 = immutabledict(source)
         return dict1["a"]
+
+    def test_pickling(self):
+        self.assertEqual(
+            pickle.loads(pickle.dumps(immutabledict([(5, "apple"), (2, "banana")]))),
+            immutabledict([(5, "apple"), (2, "banana")]),
+        )
+        self.assertEqual(
+            immutabledict([(5, "apple"), (2, "banana")]).__reduce__(),
+            (immutabledict, (((5, "apple"), (2, "banana")),)),
+        )

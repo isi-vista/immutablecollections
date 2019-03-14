@@ -1,3 +1,4 @@
+import pickle
 from collections.abc import Set
 from unittest import TestCase
 from unittest.mock import patch
@@ -258,3 +259,13 @@ class TestImmutableSet(TestCase):
             r"Attempting to initialize an ImmutableSet from a non-ImmutableSet set\.",
         ):
             immutableset({"b", "c", "a"})
+
+    def test_pickling(self):
+        self.assertEqual(pickle.loads(pickle.dumps(immutableset([5]))), immutableset([5]))
+        self.assertEqual(
+            pickle.loads(pickle.dumps(immutableset([5, 2]))), immutableset([5, 2])
+        )
+        self.assertEqual(pickle.loads(pickle.dumps(immutableset())), immutableset())
+        self.assertEqual(immutableset([5, 2]).__reduce__(), (immutableset, ((5, 2),)))
+        self.assertEqual(immutableset([5]).__reduce__(), (immutableset, ((5,),)))
+        self.assertEqual(immutableset().__reduce__(), (immutableset, ((),)))
