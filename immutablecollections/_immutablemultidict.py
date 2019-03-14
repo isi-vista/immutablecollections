@@ -17,9 +17,13 @@ from typing import (
     ValuesView,
 )  # pylint:disable=unused-import
 
-from frozendict import frozendict
-
-from immutablecollections import immutablelist, ImmutableList, ImmutableSet
+from immutablecollections import (
+    immutabledict,
+    immutablelist,
+    ImmutableList,
+    immutableset,
+    ImmutableSet,
+)
 from immutablecollections.immutablecollection import ImmutableCollection
 
 KT = TypeVar("KT")
@@ -371,7 +375,7 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
 def _freeze_set_multidict(x: Mapping[KT, Iterable[VT]]) -> Mapping[KT, ImmutableSet[VT]]:
     for (_, v) in x.items():
         _check_isinstance(v, Iterable)
-    return frozendict({k: ImmutableSet.of(v) for (k, v) in x.items()})
+    return immutabledict(((k, immutableset(v)) for (k, v) in x.items()))
 
 
 class FrozenDictBackedImmutableSetMultiDict(ImmutableSetMultiDict[KT, VT]):
@@ -574,7 +578,7 @@ def _freeze_list_multidict(
 ) -> Mapping[KT, ImmutableList[VT]]:
     for (_, v) in x.items():
         _check_isinstance(v, Iterable)
-    return frozendict({k: ImmutableList.of(v) for (k, v) in x.items()})
+    return immutabledict(((k, immutablelist(v)) for (k, v) in x.items()))
 
 
 _EMPTY_IMMUTABLE_LIST: ImmutableList[Any] = immutablelist()

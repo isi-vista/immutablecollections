@@ -1,7 +1,5 @@
 # core requirements
 attrs==18.2.0
-frozendict==1.2
-sortedcontainers==1.5.10
 typing_extensions  # for Protocol
 
 # extras for development

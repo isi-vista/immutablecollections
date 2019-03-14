@@ -13,8 +13,6 @@ from typing import (
     MutableMapping,
 )
 
-from frozendict import frozendict
-
 from immutablecollections.immutablecollection import ImmutableCollection
 from immutablecollections._utils import DICT_ITERATION_IS_DETERMINISTIC
 
@@ -32,6 +30,7 @@ SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 AllowableDictType = Union[  # pylint:disable=invalid-name
     "ImmutableDict[KT, VT]", Dict[KT, VT]
 ]
+InstantiationTypes = (Mapping, Iterable)  # pylint:disable=invalid-name
 
 
 def immutabledict(
@@ -64,7 +63,12 @@ def immutabledict(
             "3.7+; CPython 3.6+)"
         )
 
-    ret: ImmutableDict[KT, VT] = _FrozenDictBackedImmutableDict(iterable)
+    if not isinstance(iterable, InstantiationTypes):
+        raise TypeError(
+            f"Cannot create an immutabledict from {type(iterable)}, only {InstantiationTypes}"
+        )
+
+    ret: ImmutableDict[KT, VT] = _RegularDictBackedImmutableDict(iterable)
     if ret:
         return ret
     else:
@@ -202,17 +206,18 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
                 # objects can be safely shared
                 return self.source
             if self._dict:
-                return _FrozenDictBackedImmutableDict(self._dict)
+                return _RegularDictBackedImmutableDict(self._dict)
             else:
                 return _EMPTY
 
 
-class _FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
-    __slots__ = ("_dict",)
+class _RegularDictBackedImmutableDict(ImmutableDict[KT, VT]):
+    __slots__ = ("_dict", "_hash")
 
     # pylint:disable=assigning-non-slot
     def __init__(self, init_dict) -> None:
-        self._dict: Mapping[KT, VT] = frozendict(init_dict)
+        self._dict: Mapping[KT, VT] = dict(init_dict)
+        self._hash: int = None
 
     def __getitem__(self, k: KT) -> VT:
         return self._dict.__getitem__(k)
@@ -228,8 +233,16 @@ class _FrozenDictBackedImmutableDict(ImmutableDict[KT, VT]):
         return self._dict.__contains__(x)
 
     def __hash__(self) -> int:
-        return hash(self._dict)
+        # This hashing implementation is borrowed from frozendict:
+        # https://github.com/slezica/python-frozendict/blob/c5d16bafcca7b72ff3e8f40d3a9081e4c9233f1b/frozendict/__init__.py#L46
+        if self._hash is None:
+            h = 0
+            # for key, value in self._dict.items():
+            for key, value in self._dict.items():
+                h ^= hash((key, value))
+            self._hash = h
+        return self._hash
 
 
 # Singleton instance for empty
-_EMPTY: ImmutableDict = _FrozenDictBackedImmutableDict({})
+_EMPTY: ImmutableDict = _RegularDictBackedImmutableDict({})

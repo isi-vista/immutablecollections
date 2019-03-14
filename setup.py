@@ -22,13 +22,11 @@ setup(name=_name,
       python_requires='~=3.6',
       install_requires=[
           'attrs>=18.2.0',
-          'frozendict',
           'typing_extensions',
-          'sortedcontainers>=1.5.9'
       ],
       classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ]
-      )
+          "Programming Language :: Python :: 3",
+          "License :: OSI Approved :: MIT License",
+          "Operating System :: OS Independent",
+      ]
+)
