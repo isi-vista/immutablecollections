@@ -15,7 +15,7 @@ from typing import (
     TypeVar,
     Union,
     ValuesView,
-)  # pylint:disable=unused-import
+)
 
 from immutablecollections import (
     immutabledict,
@@ -222,7 +222,6 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
     # want to specify a sorting method.
 
     # Signature of the of method varies by collection
-    # pylint: disable = arguments-differ
     @staticmethod
     def of(
         data: Union[Mapping[KT, Iterable[VT]], Iterable[IT]]
@@ -415,7 +414,7 @@ class _ImmutableDictBackedImmutableSetMultiDict(ImmutableSetMultiDict[KT, VT]):
         """
         return self._dict.values()
 
-    def __len__(self) -> int:  # pylint:disable=invalid-length-returned
+    def __len__(self) -> int:
         """
         Get the number of key-value mappings in this multidict.
         """
@@ -438,7 +437,6 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
     __slots__ = ()
 
     # Signature of the of method varies by collection
-    # pylint: disable = arguments-differ
     @staticmethod
     def of(
         data: Union[Mapping[KT, Iterable[VT]], Iterable[IT]]
@@ -600,13 +598,13 @@ _EMPTY_IMMUTABLE_LIST: ImmutableList[Any] = immutablelist()
 class _ImmutableDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
     __slots__ = "_dict", "_len"
 
-    # pylint:disable=assigning-non-slot,redefined-builtin
+    # pylint:disable=assigning-non-slot
     def __init__(
-        self, dict: Mapping[KT, ImmutableList[VT]], len: Optional[int] = None
+        self, init_dict: Mapping[KT, ImmutableList[VT]], init_len: Optional[int] = None
     ) -> None:
         super(_ImmutableDictBackedImmutableListMultiDict, self).__init__()
-        self._dict = _freeze_list_multidict(dict)
-        self._len = len
+        self._dict = _freeze_list_multidict(init_dict)
+        self._len = init_len
 
     def as_dict(self) -> Mapping[KT, ImmutableList[VT]]:
         return self._dict
@@ -614,7 +612,7 @@ class _ImmutableDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT])
     def __getitem__(self, k: KT) -> ImmutableList[VT]:
         return self._dict.get(k, _EMPTY_IMMUTABLE_LIST)
 
-    def __len__(self) -> int:  # pylint:disable=invalid-length-returned
+    def __len__(self) -> int:
         """
         Get the number of key-value mappings in this multidict.
         """
