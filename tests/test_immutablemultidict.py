@@ -161,7 +161,7 @@ class TestImmutableListMultiDict(TestCase):
 
     def test_immutable_keys(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
-        # TypeError: 'FrozenDictBackedImmutableListMultiDict' object does not support item
+        # TypeError: '_ImmutableDictBackedImmutableListMultiDict' object does not support item
         # assignment
         with self.assertRaises(TypeError):
             # noinspection PyUnresolvedReferences
