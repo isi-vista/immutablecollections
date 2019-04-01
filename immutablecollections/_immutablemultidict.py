@@ -8,6 +8,7 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
+    List,
     Mapping,
     MutableMapping,
     Optional,
@@ -17,13 +18,7 @@ from typing import (
     ValuesView,
 )
 
-from immutablecollections import (
-    immutabledict,
-    immutablelist,
-    ImmutableList,
-    immutableset,
-    ImmutableSet,
-)
+from immutablecollections import immutabledict, immutableset, ImmutableSet
 from immutablecollections.immutablecollection import ImmutableCollection
 
 KT = TypeVar("KT")
@@ -462,7 +457,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
     # because mypy doesn't support type paramters which are themselves generic (e.g. parameterizing
     # ImmutableMultiDict by a collection type)
     @abstractmethod
-    def __getitem__(self, k: KT) -> ImmutableList[VT]:
+    def __getitem__(self, k: KT) -> Tuple[VT, ...]:
         """
        Gets the list of values a key maps to.
 
@@ -470,12 +465,12 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
        """
 
     @abstractmethod
-    def as_dict(self) -> Mapping[KT, ImmutableList[VT]]:
+    def as_dict(self) -> Mapping[KT, Tuple[VT, ...]]:
         """
         Gets a map where each key in this multidict is mapped to the list of its values
         """
 
-    def value_groups(self) -> ValuesView[ImmutableList[VT]]:
+    def value_groups(self) -> ValuesView[Tuple[VT, ...]]:
         """
         Gets an object containing the list of values for keys in this MultiDict.
 
@@ -528,9 +523,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
         def __init__(
             self, *, source: Optional["ImmutableMultiDict[KT2,VT2]"] = None
         ) -> None:
-            self._dict: MutableMapping[KT2, ImmutableList.Builder[VT2]] = defaultdict(
-                ImmutableList.builder
-            )
+            self._dict: MutableMapping[KT2, List[VT2]] = defaultdict(list)
             self._source = source
             self._dirty = False
 
@@ -551,7 +544,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                         for v in tmp_source[k]:
                             self.put(k, v)
 
-            self._dict[key].add(value)
+            self._dict[key].append(value)
             self._dirty = True
             return self
 
@@ -574,7 +567,7 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                 result: ImmutableListMultiDict[
                     KT2, VT2
                 ] = _ImmutableDictBackedImmutableListMultiDict(
-                    {k: v.build() for (k, v) in self._dict.items()}  # type: ignore
+                    {k: v for (k, v) in self._dict.items()}  # type: ignore
                 )
                 return (
                     result if result else _EMPTY_IMMUTABLE_LIST_MULTIDICT
@@ -584,15 +577,10 @@ class ImmutableListMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                 return self._source  # type: ignore
 
 
-def _freeze_list_multidict(
-    x: Mapping[KT, Iterable[VT]]
-) -> Mapping[KT, ImmutableList[VT]]:
+def _freeze_list_multidict(x: Mapping[KT, Iterable[VT]]) -> Mapping[KT, Tuple[VT, ...]]:
     for (_, v) in x.items():
         _check_isinstance(v, Iterable)
-    return immutabledict(((k, immutablelist(v)) for (k, v) in x.items()))
-
-
-_EMPTY_IMMUTABLE_LIST: ImmutableList[Any] = immutablelist()
+    return immutabledict(((k, tuple(v)) for (k, v) in x.items()))
 
 
 class _ImmutableDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT]):
@@ -600,17 +588,17 @@ class _ImmutableDictBackedImmutableListMultiDict(ImmutableListMultiDict[KT, VT])
 
     # pylint:disable=assigning-non-slot
     def __init__(
-        self, init_dict: Mapping[KT, ImmutableList[VT]], init_len: Optional[int] = None
+        self, init_dict: Mapping[KT, Tuple[VT, ...]], init_len: Optional[int] = None
     ) -> None:
         super(_ImmutableDictBackedImmutableListMultiDict, self).__init__()
         self._dict = _freeze_list_multidict(init_dict)
         self._len = init_len
 
-    def as_dict(self) -> Mapping[KT, ImmutableList[VT]]:
+    def as_dict(self) -> Mapping[KT, Tuple[VT, ...]]:
         return self._dict
 
-    def __getitem__(self, k: KT) -> ImmutableList[VT]:
-        return self._dict.get(k, _EMPTY_IMMUTABLE_LIST)
+    def __getitem__(self, k: KT) -> Tuple[VT, ...]:
+        return self._dict.get(k, ())
 
     def __len__(self) -> int:
         """

@@ -150,11 +150,11 @@ class TestImmutableListMultiDict(TestCase):
 
     def test_repr(self):
         self.assertEqual(
-            "i{1: [2, 2, 3]}", repr(ImmutableListMultiDict.of({1: [2, 2, 3]}))
+            "i{1: (2, 2, 3)}", repr(ImmutableListMultiDict.of({1: [2, 2, 3]}))
         )
 
     def test_str(self):
-        self.assertEqual("{1: [2, 2, 3]}", str(ImmutableListMultiDict.of({1: [2, 2, 3]})))
+        self.assertEqual("{1: (2, 2, 3)}", str(ImmutableListMultiDict.of({1: [2, 2, 3]})))
 
     def test_hash(self):
         hash(immutablelistmultidict({1: [2, 2, 3], 4: [5, 6]}))

@@ -13,16 +13,12 @@ arguments.
 
 Immutable collections efficiently reuse objects when possible. In the
 following example, x and y will refer to the same object:
-x = ImmutableList.of([1, 2, 3])
-y = ImmutableList.of(x)
+x = immutableset([1, 2, 3])
+y = immutableset(x)
 
-Immutable collections will only compare equal with objects of the same
-type. For example, ImmutableList.of([1, 2, 3]) is equal to
-ImmutableList.of([1, 2, 3]) but will not be equal to the list [1, 2, 3]
-or the tuple (1, 2, 3). This behavior is analogous to the relationship
-between lists and tuples (which can never compare equal), but differs
-from the relationship between sets and frozensets, which can compare
-equal.
+Immutable collections will also compare equal with objects of the same
+fundamental type. For example, immutableset([1, 2, 3]) is equal to
+frozenset([1, 2, 3]), both of which are equal to the regular set {1, 2, 3}.
 """
 
 # Easiest to just use the same exception
@@ -31,7 +27,6 @@ from attr.exceptions import FrozenInstanceError
 
 from immutablecollections.immutablecollection import ImmutableCollection
 from immutablecollections._immutabledict import immutabledict, ImmutableDict
-from immutablecollections._immutablelist import immutablelist, ImmutableList
 from immutablecollections._immutableset import immutableset, ImmutableSet
 from immutablecollections._immutablemultidict import (
     ImmutableSetMultiDict,
