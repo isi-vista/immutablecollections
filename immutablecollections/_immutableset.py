@@ -102,7 +102,7 @@ def immutableset(
 
 
 # typing.AbstractSet matches collections.abc.Set
-class ImmutableSet(
+class ImmutableSet(  # pylint: disable=duplicate-bases
     Generic[T],
     immutablecollection.ImmutableCollection[T],
     AbstractSet[T],
