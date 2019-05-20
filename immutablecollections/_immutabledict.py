@@ -148,7 +148,9 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         return "i" + str(self)
 
     def __str__(self):
-        return "{%s}" % ", ".join(["%s: %s" % item for item in self.items()])
+        return "{%s}" % ", ".join(
+            ["%s: %s" % (key.__repr__(), value.__repr__()) for key, value in self.items()]
+        )
 
     def __reduce__(self):
         _repr = ()
