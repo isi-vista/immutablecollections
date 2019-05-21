@@ -1,5 +1,5 @@
 import pickle
-from collections import Mapping
+from collections.abc import Mapping
 from unittest import TestCase
 
 from immutablecollections import (
