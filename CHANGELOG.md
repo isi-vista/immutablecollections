@@ -1,3 +1,18 @@
+Immutablecollections 0.7.0 (2019-05-21)
+=======================================
+
+Backward-incompatible Changes
+-----------------------------
+
+- `ImmutableList` has been removed in favor of `tuple`. Now that we are no longer targeting support for runtime type-checking of collections, `ImmutableList` had no advantage over `tuple` for any purpose. (`#42 <https://github.com/isi-vista/immutablecollections/issues/42>`_)
+
+
+Bug Fixes
+---------
+
+- immutableset can now be created from KeysView, ItemsView if dict iteration is deterministic. (`#35 <https://github.com/isi-vista/immutablecollections/issues/35>`_)
+
+
 Immutablecollections 0.6.0 (2019-02-19)
 =======================================
 

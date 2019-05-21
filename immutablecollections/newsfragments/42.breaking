@@ -1,1 +1,0 @@
-`ImmutableList` has been removed in favor of `tuple`. Now that we are no longer targeting support for runtime type-checking of collections, `ImmutableList` had no advantage over `tuple` for any purpose.

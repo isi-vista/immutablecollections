@@ -1,1 +1,0 @@
-immutableset can now be created from KeysView, ItemsView if dict iteration is deterministic.
