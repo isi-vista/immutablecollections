@@ -28,6 +28,7 @@ from immutablecollections._utils import DICT_ITERATION_IS_DETERMINISTIC
 T = TypeVar("T")  # pylint:disable=invalid-name
 # necessary because inner classes cannot share typevars
 T2 = TypeVar("T2")  # pylint:disable=invalid-name
+V = TypeVar("V")
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 ViewTypes = (KeysView, ValuesView, ItemsView)  # pylint:disable=invalid-name
 
@@ -231,9 +232,19 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
 
     def __sub__(self, other: AbstractSet[Any]) -> "ImmutableSet[T]":
         """
-        Gets a new set with all items in this set not in the other.
+        Subtracts `other` from `self`. An item is included iff it is in `self` and not in `other`.
         """
         return self.difference(other)
+
+    def __rsub__(self, other: AbstractSet[V]) -> "AbstractSet[V]":
+        """
+        Subtracts `self` from `other`. An item is included iff is in `other` and not in `self`.
+
+        This method is necessary because it defines behavior for an `otherset - immutableset`.
+        Without this method, otherset.__sub__(immutableset) would be called, which will typically
+        fail.
+        """
+        return set(item for item in other if item not in self)
 
     # we can be more efficient than Sequence's default implementation
     def count(self, value: Any) -> int:

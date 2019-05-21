@@ -269,3 +269,14 @@ class TestImmutableSet(TestCase):
         self.assertEqual(immutableset([5, 2]).__reduce__(), (immutableset, ((5, 2),)))
         self.assertEqual(immutableset([5]).__reduce__(), (immutableset, ((5,),)))
         self.assertEqual(immutableset().__reduce__(), (immutableset, ((),)))
+
+    def test_subtract_from_other_set_types(self):
+        # normal sets on LHS
+        self.assertEqual({5, 6}, {4, 5, 6} - immutableset([2, 3, 4]))
+        self.assertEqual(set(), set() - immutableset([]))
+        self.assertEqual({2, 3}, {2, 3} - immutableset([]))
+        self.assertEqual(set(), {2, 3} - immutableset([2, 3]))
+
+        # frozensets on LHS
+        self.assertEqual({5, 6}, frozenset([4, 5, 6]) - immutableset([2, 3, 4]))
+        self.assertEqual({"a"}, frozenset(["a", "b"]) - immutableset(["b", "c"]))
