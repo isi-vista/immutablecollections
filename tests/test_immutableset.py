@@ -3,7 +3,11 @@ from collections.abc import Set
 from unittest import TestCase
 from unittest.mock import patch
 
-from immutablecollections import ImmutableSet, immutableset
+from immutablecollections import (
+    ImmutableSet,
+    immutableset,
+    immutableset_from_unique_elements,
+)
 
 
 class TestImmutableSet(TestCase):
@@ -280,3 +284,13 @@ class TestImmutableSet(TestCase):
         # frozensets on LHS
         self.assertEqual({5, 6}, frozenset([4, 5, 6]) - immutableset([2, 3, 4]))
         self.assertEqual({"a"}, frozenset(["a", "b"]) - immutableset(["b", "c"]))
+
+    def test_forbid_duplicate_elements(self):
+        with self.assertRaises(ValueError):
+            immutableset([4, 6, 7, 9, 7], forbid_duplicate_elements=True)
+        immutableset([3, 7, 5, 9], forbid_duplicate_elements=True)
+
+    def test_immutableset_from_unique_elements(self):
+        with self.assertRaises(ValueError):
+            immutableset_from_unique_elements([4, 6, 7, 9, 7])
+        immutableset_from_unique_elements([3, 7, 5, 9])

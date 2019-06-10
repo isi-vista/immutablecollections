@@ -27,7 +27,11 @@ from attr.exceptions import FrozenInstanceError
 
 from immutablecollections.immutablecollection import ImmutableCollection
 from immutablecollections._immutabledict import immutabledict, ImmutableDict
-from immutablecollections._immutableset import immutableset, ImmutableSet
+from immutablecollections._immutableset import (
+    immutableset,
+    immutableset_from_unique_elements,
+    ImmutableSet,
+)
 from immutablecollections._immutablemultidict import (
     ImmutableSetMultiDict,
     ImmutableListMultiDict,

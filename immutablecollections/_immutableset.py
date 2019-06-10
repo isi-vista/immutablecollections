@@ -34,7 +34,10 @@ ViewTypes = (KeysView, ValuesView, ItemsView)  # pylint:disable=invalid-name
 
 
 def immutableset(
-    iterable: Optional[Iterable[T]] = None, *, disable_order_check: bool = False
+    iterable: Optional[Iterable[T]] = None,
+    *,
+    disable_order_check: bool = False,
+    forbid_duplicate_elements: bool = False,
 ) -> "ImmutableSet[T]":
     """
     Create an immutable set with the given contents.
@@ -47,6 +50,9 @@ def immutableset(
     these cases we will throw an exception as a warning to the programmer, but this behavior
     could be removed in the future and should not be relied upon.  This check may be disabled
     by setting *disable_order_check* to ``True``.
+
+    If *forbid_duplicate_elements* is ``True`` and one item occurs twice in *iterable*, then
+    a ``ValueError`` will be thrown.
 
     If *iterable* is already an ``ImmutableSet``, *iterable* itself will be returned.
     """
@@ -92,6 +98,10 @@ def immutableset(
         if value not in containment_set:
             containment_set.add(value)
             iteration_order.append(value)
+        elif forbid_duplicate_elements:
+            raise ValueError(
+                "Input collection has duplicate items and forbid_duplicate_elements=False"
+            )
 
     if iteration_order:
         if len(iteration_order) == 1:
@@ -100,6 +110,18 @@ def immutableset(
             return _FrozenSetBackedImmutableSet(containment_set, iteration_order, None)
     else:
         return _EMPTY
+
+
+def immutableset_from_unique_elements(
+    iterable: Optional[Iterable[T]] = None, *, disable_order_check: bool = False
+):
+    """
+    Create an immutableset from *iterable*. If one item occurs twice in *iterable*, then
+    a ``ValueError`` will be thrown. More information in ``immutablecollections.immutableset``.
+    """
+    return immutableset(
+        iterable, disable_order_check=disable_order_check, forbid_duplicate_elements=True
+    )
 
 
 # typing.AbstractSet matches collections.abc.Set
