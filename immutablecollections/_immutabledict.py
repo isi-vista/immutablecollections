@@ -23,18 +23,16 @@ IT = Tuple[KT, VT]
 # cannot share type variables between outer and inner classes
 KT2 = TypeVar("KT2")
 VT2 = TypeVar("VT2")
-IT2 = Tuple[KT, VT]
+IT2 = Tuple[KT2, VT2]
 
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 
-AllowableDictType = Union[  # pylint:disable=invalid-name
-    "ImmutableDict[KT, VT]", Dict[KT, VT]
-]
+AllowableSourceType = Union[Iterable[IT], Mapping[KT, VT], "ImmutableDict[KT, VT]"]
 InstantiationTypes = (Mapping, Iterable)  # pylint:disable=invalid-name
 
 
 def immutabledict(
-    iterable: Optional[Union[Iterable[Tuple[KT, VT]], AllowableDictType]] = None
+    iterable: Optional[AllowableSourceType] = None
 ) -> "ImmutableDict[KT, VT]":
     """
     Create an immutable dictionary with the given mappings.
@@ -88,7 +86,7 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
     # Signature of the of method varies by collection
     # pylint: disable = arguments-differ
     @staticmethod
-    def of(dict_: Union[Mapping[KT, VT], Iterable[IT]]) -> "ImmutableDict[KT, VT]":
+    def of(dict_: AllowableSourceType) -> "ImmutableDict[KT, VT]":
         """
         Deprecated - prefer ``immutabledict`` module-level factory
         """
