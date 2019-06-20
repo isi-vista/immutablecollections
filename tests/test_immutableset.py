@@ -286,11 +286,18 @@ class TestImmutableSet(TestCase):
         self.assertEqual({"a"}, frozenset(["a", "b"]) - immutableset(["b", "c"]))
 
     def test_forbid_duplicate_elements(self):
+        bad = [4, 6, 7, 9, 7]
         with self.assertRaises(ValueError):
-            immutableset([4, 6, 7, 9, 7], forbid_duplicate_elements=True)
-        immutableset([3, 7, 5, 9], forbid_duplicate_elements=True)
+            immutableset(bad, forbid_duplicate_elements=True)
+        with self.assertRaises(ValueError):
+            immutableset_from_unique_elements(bad)
+        with self.assertRaises(ValueError):
+            immutableset((x for x in bad), forbid_duplicate_elements=True)
+        with self.assertRaises(ValueError):
+            immutableset_from_unique_elements(x for x in bad)
 
-    def test_immutableset_from_unique_elements(self):
-        with self.assertRaises(ValueError):
-            immutableset_from_unique_elements([4, 6, 7, 9, 7])
-        immutableset_from_unique_elements([3, 7, 5, 9])
+        good = [3, 7, 5, 9]
+        immutableset(good, forbid_duplicate_elements=True)
+        immutableset_from_unique_elements(good)
+        immutableset((x for x in good), forbid_duplicate_elements=True)
+        immutableset_from_unique_elements(x for x in good)

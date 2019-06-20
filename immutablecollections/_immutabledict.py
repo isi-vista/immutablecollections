@@ -5,6 +5,8 @@ from typing import (
     Mapping,
     TypeVar,
     Tuple,
+    Set,
+    List,
     Iterator,
     Optional,
     Union,
@@ -32,7 +34,7 @@ InstantiationTypes = (Mapping, Iterable)  # pylint:disable=invalid-name
 
 
 def immutabledict(
-    iterable: Optional[AllowableSourceType] = None
+    iterable: Optional[AllowableSourceType] = None, *, forbid_duplicate_keys: bool = False
 ) -> "ImmutableDict[KT, VT]":
     """
     Create an immutable dictionary with the given mappings.
@@ -51,7 +53,8 @@ def immutabledict(
 
     if isinstance(iterable, ImmutableDict):
         # if an ImmutableDict is input, we can safely just return it,
-        # since the object can safely be shared
+        # since the object can safely be shared.
+        # It is also guaranteed not to have repeat keys
         return iterable
 
     if isinstance(iterable, Dict) and not DICT_ITERATION_IS_DETERMINISTIC:
@@ -66,11 +69,44 @@ def immutabledict(
             f"Cannot create an immutabledict from {type(iterable)}, only {InstantiationTypes}"
         )
 
+    if forbid_duplicate_keys:
+        keys: List[KT]
+        # `for x in dict` grabs keys, but `for x in pairs` grabs pairs, so we must branch
+        if isinstance(iterable, Mapping):
+            # duplicate keys are possible if input is e.g. a multidict
+            keys = list(iterable.keys())
+        else:
+            # iterable must be a (key, value) pair iterable
+            iterable = list(iterable)  # in case iterable is consumed by iteration
+            keys = [key for key, value in iterable]
+        seen: Set[KT] = set()
+        duplicated: Set[KT] = set()
+        for key in keys:
+            if key in seen:
+                duplicated.add(key)
+            else:
+                seen.add(key)
+        if duplicated:
+            raise ValueError(
+                "forbid_duplicate_keys=True, but some keys "
+                "occur multiple times in input: {}".format(duplicated)
+            )
+
     ret: ImmutableDict[KT, VT] = _RegularDictBackedImmutableDict(iterable)
     if ret:
         return ret
     else:
         return _EMPTY
+
+
+def immutabledict_from_unique_keys(
+    iterable: Optional[AllowableSourceType] = None
+) -> "ImmutableDict[KT, VT]":
+    """
+    Create an immutable dictionary with the given mappings, but raise ValueError if
+    *iterable* contains the same item twice. More information in `immutabledict`
+    """
+    return immutabledict(iterable, forbid_duplicate_keys=True)
 
 
 class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta):

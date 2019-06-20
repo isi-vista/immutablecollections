@@ -2,7 +2,11 @@ import pickle
 from collections.abc import Mapping
 from unittest import TestCase
 
-from immutablecollections import immutabledict, ImmutableDict
+from immutablecollections import (
+    immutabledict,
+    ImmutableDict,
+    immutabledict_from_unique_keys,
+)
 
 
 class TestImmutableDict(TestCase):
@@ -138,3 +142,20 @@ class TestImmutableDict(TestCase):
             immutabledict([(5, "apple"), (2, "banana")]).__reduce__(),
             (immutabledict, (((5, "apple"), (2, "banana")),)),
         )
+
+    def test_immutabledict_duplication_blocking(self):
+        bad = [(7, 8), (9, 10), (7, 11)]
+        with self.assertRaises(ValueError):
+            immutabledict(bad, forbid_duplicate_keys=True)
+        with self.assertRaises(ValueError):
+            immutabledict_from_unique_keys(bad)
+        with self.assertRaises(ValueError):
+            immutabledict((x for x in bad), forbid_duplicate_keys=True)
+        with self.assertRaises(ValueError):
+            immutabledict_from_unique_keys(x for x in bad)
+
+        good = [(7, 8), (9, 10), (12, 11)]
+        immutabledict(good, forbid_duplicate_keys=True)
+        immutabledict_from_unique_keys(good)
+        immutabledict((x for x in good), forbid_duplicate_keys=True)
+        immutabledict_from_unique_keys(x for x in good)

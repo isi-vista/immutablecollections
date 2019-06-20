@@ -26,7 +26,11 @@ frozenset([1, 2, 3]), both of which are equal to the regular set {1, 2, 3}.
 from attr.exceptions import FrozenInstanceError
 
 from immutablecollections.immutablecollection import ImmutableCollection
-from immutablecollections._immutabledict import immutabledict, ImmutableDict
+from immutablecollections._immutabledict import (
+    immutabledict,
+    ImmutableDict,
+    immutabledict_from_unique_keys,
+)
 from immutablecollections._immutableset import (
     immutableset,
     immutableset_from_unique_elements,

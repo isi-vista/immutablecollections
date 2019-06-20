@@ -92,6 +92,7 @@ def immutableset(
                 "iteration order, specify disable_order_check=True"
             )
 
+    duplicated = set()  # only used if forbid_duplicate_elements=True
     iteration_order = []
     containment_set: MutableSet[T] = set()
     for value in iterable:
@@ -99,9 +100,13 @@ def immutableset(
             containment_set.add(value)
             iteration_order.append(value)
         elif forbid_duplicate_elements:
-            raise ValueError(
-                "Input collection has duplicate items and forbid_duplicate_elements=False"
-            )
+            duplicated.add(value)
+
+    if forbid_duplicate_elements and duplicated:
+        raise ValueError(
+            "forbid_duplicate_elements=True, but some elements "
+            "occur multiple times in input: {}".format(duplicated)
+        )
 
     if iteration_order:
         if len(iteration_order) == 1:
