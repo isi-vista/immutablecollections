@@ -11,6 +11,7 @@ from typing import (
     Iterator,
     KeysView,
     List,
+    Set,
     MutableSet,
     Optional,
     overload,
@@ -92,20 +93,32 @@ def immutableset(
                 "iteration order, specify disable_order_check=True"
             )
 
-    duplicated = set()  # only used if forbid_duplicate_elements=True
+    if forbid_duplicate_elements:
+        # We check for duplicate elements by comparing the original iterable length with the output
+        # set length. Some iterables don't provide a __len__ or are consumed by iteration, so we
+        # listify the iterable to be safe.
+        iterable = list(iterable)
+        original_length = len(iterable)  # must be recorded here for mypy to be happy
+
     iteration_order = []
     containment_set: MutableSet[T] = set()
     for value in iterable:
         if value not in containment_set:
             containment_set.add(value)
             iteration_order.append(value)
-        elif forbid_duplicate_elements:
-            duplicated.add(value)
 
-    if forbid_duplicate_elements and duplicated:
+    if forbid_duplicate_elements and len(containment_set) != original_length:
+        seen_once: Set[T] = set()
+        seen_twice: Set[T] = set()
+        for item in iterable:
+            if item not in seen_once:
+                seen_once.add(item)
+            else:
+                seen_twice.add(item)
+        # seen_twice is guaranteed to be nonempty
         raise ValueError(
             "forbid_duplicate_elements=True, but some elements "
-            "occur multiple times in input: {}".format(duplicated)
+            f"occur multiple times in input: {seen_twice}"
         )
 
     if iteration_order:
