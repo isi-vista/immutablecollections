@@ -1,3 +1,12 @@
+Immutablecollections 0.8.0 (2019-07-25)
+=======================================
+
+New Features
+------------
+
+- Add workarounds for mypy problems with attrs type converters and generics.  This is to workaround python/mypy#5738 and  python-attrs/attrs#519 . (`#59 <https://github.com/isi-vista/immutablecollections/pull/59>`_)
+
+
 Immutablecollections 0.7.0 (2019-05-21)
 =======================================
 
