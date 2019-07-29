@@ -222,6 +222,32 @@ class TestImmutableSet(TestCase):
         with self.assertRaises(IndexError):
             s[-25]
 
+    def test_singleton_slice(self):
+        s = immutableset([1])
+
+        self.assertEqual(s, s[0:1])
+        self.assertEqual(s, s[-1:1])
+        self.assertEqual(s, s[0:])
+        self.assertEqual(s, s[:1])
+        self.assertEqual(s, s[:50])
+        self.assertEqual(s, s[-2:])
+
+        self.assertEqual(immutableset(), s[1:5])
+        self.assertEqual(immutableset(), s[51:56])
+        self.assertEqual(immutableset(), s[-5:-1])
+        self.assertEqual(immutableset(), s[-1:0])
+        self.assertEqual(immutableset(), s[1:])
+
+        self.assertEqual(immutableset(), s[5:1])
+
+        self.assertEqual(s, s[0:1:1])
+        self.assertEqual(s, s[1:-50:-1])
+        self.assertEqual(s, s[0:1:5])
+        self.assertEqual(s, s[1:-1:-60])
+
+        with self.assertRaises(ValueError):
+            s[0:1:0]
+
     def test_slice(self):
         self.assertEqual(2, immutableset([1, 2, 3])[1])
         self.assertEqual((2, 3), immutableset([1, 2, 3])[1:])

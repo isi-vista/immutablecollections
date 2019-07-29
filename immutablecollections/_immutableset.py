@@ -614,10 +614,19 @@ class _SingletonImmutableSet(ImmutableSet[T]):
         if item == 0 or item == -1:
             return self._single_value
         elif isinstance(item, slice):
-            raise NotImplementedError(
-                "Slicing of singleton immutable sets not yet implemented, see "
-                "https://github.com/isi-vista/immutablecollections/issues/23."
-            )
+            if item.step is None or item.step > 0:
+                if (
+                    (item.start is None and item.stop is None)
+                    or (item.start is None and (item.stop is None or item.stop >= 1))
+                    or (item.start <= 0 and (item.stop is None or item.stop >= 1))
+                ):
+                    return self
+                else:
+                    return _EMPTY
+            elif item.step < 0:
+                return self.__getitem__(slice(item.stop, item.start, -item.step))
+            else:
+                raise ValueError("Can't slice with step size of zero.")
         else:
             raise IndexError(f"Index {item} out-of-bounds for size 1 ImmutableSet")
 
