@@ -177,7 +177,9 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
     # pylint: disable = arguments-differ
     @staticmethod
     def of(
-        seq: Iterable[T], check_top_type_matches=None, require_ordered_input=False
+        seq: Iterable[T],
+        check_top_type_matches: Optional[Type[T]] = None,
+        require_ordered_input: bool = False,
     ) -> "ImmutableSet[T]":
         """
         Deprecated - prefer ``immutableset`` module-level factory method.
@@ -210,9 +212,33 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
         """
         return _EMPTY
 
+    def issubset(self, other: Iterable[T]) -> bool:
+        """
+        This set is a subset of another set if all the elements of this set are
+        are contained in the other set.
+
+        Note that this operation is equivalent to `self <= other`. For determining whether or not
+         this set is a _proper_ subset of another set, use `self < other`.
+        """
+        if isinstance(other, AbstractSet):
+            return self.__le__(other)
+        return self.__le__(immutableset(other))
+
+    def issuperset(self, other: Iterable[T]) -> bool:
+        """
+        This set is a superset of another set if all the elements of the other set
+        are contained in this set.
+
+        Note that this operation is equivalent to `self >= other`. For determining whether or not
+        this set is a _proper_ superset of another set, use `self > other`.
+        """
+        if isinstance(other, AbstractSet):
+            return self.__ge__(other)
+        return self.__ge__(immutableset(other))
+
     # we would really like this to be AbstractSet[ExtendsT] but Python doesn't support it
     def union(
-        self, other: AbstractSet[T], check_top_type_matches=None
+        self, other: Iterable[T], check_top_type_matches: Optional[Type[T]] = None
     ) -> "ImmutableSet[T]":
         """
         Get the union of this set and another.
@@ -220,7 +246,6 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
         If check top level types is provided, all elements of both sets must match the specified
         type.
         """
-        _check_isinstance(other, AbstractSet)
         return (
             ImmutableSet.builder(check_top_type_matches)
             .add_all(self)
@@ -233,9 +258,9 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
         """
         Get the union of this set and another without type checking.
         """
-        return self.union(self, other)
+        return self.union(other)
 
-    def intersection(self, other: AbstractSet[Any]) -> "ImmutableSet[T]":
+    def intersection(self, other: Iterable[Any]) -> "ImmutableSet[T]":
         """
         Get the intersection of this set and another.
 
@@ -246,11 +271,10 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
         should have already been in this set, so you can type check this set itself if you are
         concerned.
         """
-        _check_isinstance(other, AbstractSet)
         return (
             ImmutableSet.builder(
                 check_top_type_matches=self._top_level_type  # type: ignore
-            )  # type: ignore
+            )
             .add_all(x for x in self if x in other)
             .build()
         )
@@ -268,7 +292,7 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
         return ImmutableSet.of(
             (x for x in self if x not in other),
             check_top_type_matches=self._top_level_type,  # type: ignore
-        )  # type: ignore
+        )
 
     def __sub__(self, other: AbstractSet[Any]) -> "ImmutableSet[T]":
         """
@@ -285,6 +309,24 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
         fail.
         """
         return set(item for item in other if item not in self)
+
+    def symmetric_difference(self, other: Iterable[V]) -> "AbstractSet[Union[T, V]]":
+        """
+        Return the union of elements that are in this set but not the other and elements that are
+        in the other set but not this set (`(self - other) | (other - self)`).
+        """
+        if isinstance(other, AbstractSet):
+            return self ^ other
+        return self ^ immutableset(other)
+
+    def copy(self) -> "ImmutableSet[T]":
+        """
+        Return this set.
+
+        Because ImmutableSet is immutable, there is never a reason to copy it. This method is
+        provided for compatibility with `set` and `frozenset`.
+        """
+        return self
 
     # we can be more efficient than Sequence's default implementation
     def count(self, value: Any) -> int:
@@ -303,8 +345,8 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
 
     @staticmethod
     def builder(
-        check_top_type_matches: Type[T] = None,
-        require_ordered_input=False,
+        check_top_type_matches: Optional[Type[T]] = None,
+        require_ordered_input: bool = False,
         order_key: Callable[[T], Any] = None,
     ) -> "ImmutableSet.Builder[T]":
         """
@@ -360,7 +402,7 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
 class _TypeCheckingBuilder(ImmutableSet.Builder[T]):
     def __init__(
         self,
-        top_level_type: Type = None,
+        top_level_type: Optional[Type] = None,
         require_ordered_input: bool = False,
         order_key: Callable[[T], Any] = None,
     ) -> None:
