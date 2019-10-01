@@ -1,0 +1,1 @@
+Slicing of `ImmutableSet`s that only contain a single element is implemented.
