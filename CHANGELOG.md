@@ -1,3 +1,18 @@
+Immutablecollections 0.9.0 (2019-10-02)
+=======================================
+
+New Features
+------------
+
+- `ImmutableSet` now implements the same methods as the standard library `frozenset`. Added the `issubset`, `issuperset`, and `symmetric_difference` convenience methods that wrap `<=`, `>=`, and `^`, respectively, and the shallow `copy` method. (`#61 <https://github.com/isi-vista/immutablecollections/issues/61>`_)
+
+
+Bug Fixes
+---------
+
+- Slicing of `ImmutableSet`s that only contain a single element is implemented. (`#23 <https://github.com/isi-vista/immutablecollections/issues/23>`_)
+
+
 Immutablecollections 0.8.0 (2019-07-25)
 =======================================
 

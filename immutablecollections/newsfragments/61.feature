@@ -1,1 +1,0 @@
-`ImmutableSet` now implements the same methods as the standard library `frozenset`. Added the `issubset`, `issuperset`, and `symmetric_difference` convenience methods that wrap `<=`, `>=`, and `^`, respectively, and the shallow `copy` method.
