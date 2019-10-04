@@ -1,21 +1,21 @@
 from abc import ABCMeta
 from typing import (
-    Dict,
-    Iterable,
-    Mapping,
-    TypeVar,
-    Tuple,
-    Set,
-    Iterator,
-    Optional,
-    Union,
-    Generic,
     Callable,
+    Dict,
+    Generic,
+    Iterable,
+    Iterator,
+    Mapping,
     MutableMapping,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
 )
 
-from immutablecollections.immutablecollection import ImmutableCollection
 from immutablecollections._utils import DICT_ITERATION_IS_DETERMINISTIC
+from immutablecollections.immutablecollection import ImmutableCollection
 
 KT = TypeVar("KT")
 VT = TypeVar("VT")

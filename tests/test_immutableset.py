@@ -158,6 +158,7 @@ class TestImmutableSet(TestCase):
             ),
         )
 
+    # pylint: disable=blacklisted-name
     def test_comparisons(self):
         foo = {1, 2}
         bar = immutableset([1, 2, 3])
@@ -250,6 +251,7 @@ class TestImmutableSet(TestCase):
         with self.assertRaises(ValueError):
             s.index("z")
 
+    # pylint: disable=pointless-statement
     def test_singleton_index(self):
         s = ImmutableSet.of([1])
 

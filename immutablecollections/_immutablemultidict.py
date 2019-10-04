@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod, ABC
+from abc import ABC, ABCMeta, abstractmethod
 from collections import defaultdict
 from typing import (
     AbstractSet,
@@ -18,7 +18,7 @@ from typing import (
     ValuesView,
 )
 
-from immutablecollections import immutabledict, immutableset, ImmutableSet
+from immutablecollections import ImmutableSet, immutabledict, immutableset
 from immutablecollections.immutablecollection import ImmutableCollection
 
 KT = TypeVar("KT")

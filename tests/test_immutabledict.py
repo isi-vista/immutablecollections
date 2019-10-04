@@ -3,8 +3,8 @@ from collections.abc import Mapping
 from unittest import TestCase
 
 from immutablecollections import (
-    immutabledict,
     ImmutableDict,
+    immutabledict,
     immutabledict_from_unique_keys,
 )
 
@@ -120,6 +120,7 @@ class TestImmutableDict(TestCase):
         self.assertEqual("{1: 2, 3: 4}", str(immutabledict({1: 2, 3: 4})))
 
     def test_index(self):
+        # pylint: disable=unnecessary-lambda
         by_length = ImmutableDict.index(["foo", "fooo", "la"], lambda s: len(s))
         self.assertEqual(3, len(by_length))
         self.assertEqual("foo", by_length[3])
@@ -129,8 +130,8 @@ class TestImmutableDict(TestCase):
     @staticmethod
     def type_annotations() -> int:
         # Just to check for mypy warnings
-        source: Mapping[str, int] = {"a": 1}
-        dict1 = immutabledict(source)
+        source = {"a": 1}
+        dict1: Mapping[str, int] = immutabledict(source)
         return dict1["a"]
 
     def test_pickling(self):

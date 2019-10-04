@@ -3,12 +3,12 @@ from collections.abc import Mapping
 from unittest import TestCase
 
 from immutablecollections import (
+    ImmutableListMultiDict,
     ImmutableSet,
     ImmutableSetMultiDict,
-    ImmutableListMultiDict,
-    immutablesetmultidict,
     immutablelistmultidict,
     immutableset,
+    immutablesetmultidict,
 )
 
 
@@ -179,6 +179,7 @@ class TestImmutableListMultiDict(TestCase):
             x[1][0] = 7
 
     def test_cannot_init(self):
+        # pylint: disable=abstract-class-instantiated
         with self.assertRaises(TypeError):
             # noinspection PyArgumentList
             ImmutableListMultiDict(dict())
@@ -213,8 +214,8 @@ class TestImmutableListMultiDict(TestCase):
         orig = ImmutableListMultiDict.of({1: [1], 2: [2], 3: [3], 4: [4]})
         evens = orig.filter_keys(lambda x: x % 2 == 0)
         self.assertEqual(ImmutableListMultiDict.of({2: [2], 4: [4]}), evens)
-        all = orig.filter_keys(lambda x: x)
-        self.assertEqual(orig, all)
+        all_keys = orig.filter_keys(lambda x: x)
+        self.assertEqual(orig, all_keys)
 
     def test_len(self):
         x = ImmutableListMultiDict.of({1: [2, 2, 3], 4: [5, 6]})
