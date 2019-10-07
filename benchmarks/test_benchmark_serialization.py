@@ -2,9 +2,9 @@
 import random
 from pickle import dumps
 
-import pytest
-
 from immutablecollections import immutabledict, immutableset
+
+import pytest
 
 empty_tuple = ()
 empty_list = []

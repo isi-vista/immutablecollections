@@ -1,9 +1,9 @@
 # pylint: disable=invalid-name
 import random
 
-import pytest
-
 from immutablecollections import ImmutableDict, ImmutableSet, immutableset
+
+import pytest
 
 print(type(immutableset))
 

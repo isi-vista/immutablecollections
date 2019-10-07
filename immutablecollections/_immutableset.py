@@ -26,7 +26,7 @@ from typing import (
 from immutablecollections import immutablecollection
 from immutablecollections._utils import DICT_ITERATION_IS_DETERMINISTIC
 
-T = TypeVar("T")  # pylint:disable=invalid-name
+T = TypeVar("T")
 # necessary because inner classes cannot share typevars
 T2 = TypeVar("T2")  # pylint:disable=invalid-name
 V = TypeVar("V")
