@@ -321,10 +321,9 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
             source: Optional["ImmutableMultiDict[KT2,VT2]"] = None,
             order_key: Callable[[VT2], Any] = None,
         ) -> None:
-            self._dict: MutableMapping[KT2, ImmutableSet.Builder[VT2]] = defaultdict(
-                lambda: ImmutableSet.builder(order_key=order_key)
-            )
+            self._dict: MutableMapping[KT2, List[VT2]] = defaultdict(list)
             self._source = source
+            self._order_key = order_key
             self._dirty = False
 
         def put(self: SelfType, key: KT2, value: VT2) -> SelfType:
@@ -344,7 +343,7 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                         for v in tmp_source[k]:
                             self.put(k, v)
 
-            self._dict[key].add(value)
+            self._dict[key].append(value)
             self._dirty = True
             return self
 
@@ -367,7 +366,10 @@ class ImmutableSetMultiDict(ImmutableMultiDict[KT, VT], metaclass=ABCMeta):
                 result: ImmutableSetMultiDict[
                     KT2, VT2
                 ] = _ImmutableDictBackedImmutableSetMultiDict(
-                    {k: v.build() for (k, v) in self._dict.items()}  # type: ignore
+                    {
+                        k: immutableset(v, order_key=self._order_key)
+                        for (k, v) in self._dict.items()
+                    }  # type: ignore
                 )
                 # item type doesn't matter on empty collections
                 return (

@@ -25,8 +25,3 @@ class ImmutableCollection(Generic[T], Iterable[T], metaclass=ABCMeta):
     @abstractmethod
     def empty():
         raise NotImplementedError()
-
-    @staticmethod
-    @abstractmethod
-    def builder():
-        raise NotImplementedError()

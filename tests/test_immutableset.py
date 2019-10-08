@@ -17,18 +17,13 @@ class TestImmutableSet(TestCase):
         empty2 = immutableset([])
         self.assertEqual(0, len(empty2))
         self.assertEqual(empty, empty2)
-        empty3 = ImmutableSet.builder().build()
-        self.assertEqual(0, len(empty3))
-        self.assertEqual(empty, empty3)
 
     def test_empty_singleton(self):
         empty1 = immutableset()
         empty2 = immutableset()
         self.assertIs(empty1, empty2)
-        empty3 = ImmutableSet.builder().build()
+        empty3 = immutableset([])
         self.assertIs(empty1, empty3)
-        empty4 = immutableset([])
-        self.assertIs(empty1, empty4)
 
     def test_basic(self):
         source = (1, 2, 3)
@@ -150,12 +145,7 @@ class TestImmutableSet(TestCase):
 
     def test_ordering(self):
         self.assertEqual(
-            ("a", "b", "c"),
-            tuple(
-                ImmutableSet.builder(order_key=lambda x: x)
-                .add_all(["b", "c", "a"])
-                .build()
-            ),
+            ("a", "b", "c"), tuple(immutableset(["b", "c", "a"], order_key=lambda x: x))
         )
 
     # pylint: disable=blacklisted-name
