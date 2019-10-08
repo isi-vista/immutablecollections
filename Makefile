@@ -1,15 +1,9 @@
 default:
 	@echo "an explicit target is required"
 
-# easier to test python2 vs. python3
-PYTHON=python3
-
-SHELL=bash
 SOURCE_DIR_NAME=immutablecollections
 
-PYLINT:=pylint $(SOURCE_DIR_NAME)
-
-MYPY:=mypy $(MYPY_ARGS) $(SOURCE_DIR_NAME)
+MYPY:=mypy $(SOURCE_DIR_NAME) tests
 
 # Suppressed warnings:
 # Too many arguments, Unexpected keyword arguments: can't do static analysis on attrs __init__
@@ -26,29 +20,30 @@ MYPY:=mypy $(MYPY_ARGS) $(SOURCE_DIR_NAME)
 FILTERED_MYPY:=$(MYPY) | perl -ne 'print if !/(Too many arguments|Signature of "__getitem__"|Only concrete class|Unexpected keyword argument|mypy\/typeshed\/stdlib\/3\/builtins.pyi:39: note: "\w+" defined here|Module( '\''\w+'\'')? has no attribute|has no attribute "validator"|has no attribute "default"|SelfType" has no attribute)/' | tee ./.mypy_tmp && test ! -s ./.mypy_tmp
 
 test:
-	$(PYTHON) -m pytest tests
+	python -m pytest tests
 
 coverage:
-	$(PYTHON) -m pytest --cov=$(SOURCE_DIR_NAME) tests
-
-benchmark:
-	$(PYTHON) -m pytest  benchmarks --benchmark-timer=time.process_time --benchmark-autosave --benchmark-save-data
+	python -m pytest --cov=$(SOURCE_DIR_NAME) tests
 
 lint:
-	$(PYLINT)
+	pylint $(SOURCE_DIR_NAME) tests benchmarks
 
 mypy:
 	$(FILTERED_MYPY)
 
 flake8:
-	flake8 $(SOURCE_DIR_NAME)
+	flake8 $(SOURCE_DIR_NAME) tests benchmarks
 
 black-fix:
+	isort -rc .
 	black $(SOURCE_DIR_NAME) tests benchmarks
 
 black-check:
-	black --check $(SOURCE_DIR_NAME) tests
+	black --check $(SOURCE_DIR_NAME) tests benchmarks
 
-check: black-check lint mypy flake8
+check: black-check flake8 mypy lint
 
 precommit: black-fix check
+
+benchmark:
+	python -m pytest benchmarks --benchmark-timer=time.process_time --benchmark-autosave --benchmark-save-data

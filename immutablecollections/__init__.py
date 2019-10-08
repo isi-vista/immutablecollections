@@ -19,28 +19,29 @@ y = immutableset(x)
 Immutable collections will also compare equal with objects of the same
 fundamental type. For example, immutableset([1, 2, 3]) is equal to
 frozenset([1, 2, 3]), both of which are equal to the regular set {1, 2, 3}.
+
+isort:skip_file
 """
 
 # Easiest to just use the same exception
 # noinspection PyUnresolvedReferences
 from attr.exceptions import FrozenInstanceError
 
-from immutablecollections.immutablecollection import ImmutableCollection
-from immutablecollections._immutabledict import (
-    immutabledict,
-    ImmutableDict,
-    immutabledict_from_unique_keys,
-)
 from immutablecollections._immutableset import (
+    ImmutableSet,
     immutableset,
     immutableset_from_unique_elements,
-    ImmutableSet,
+)
+from immutablecollections._immutabledict import (
+    ImmutableDict,
+    immutabledict,
+    immutabledict_from_unique_keys,
 )
 from immutablecollections._immutablemultidict import (
-    ImmutableSetMultiDict,
     ImmutableListMultiDict,
+    ImmutableSetMultiDict,
     immutablelistmultidict,
     immutablesetmultidict,
 )
-
+from immutablecollections.immutablecollection import ImmutableCollection
 from immutablecollections.version import version as __version__

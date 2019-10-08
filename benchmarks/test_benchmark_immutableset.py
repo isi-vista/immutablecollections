@@ -1,7 +1,9 @@
-import pytest
+# pylint: disable=invalid-name
 import random
 
-from immutablecollections import ImmutableDict, immutableset, ImmutableSet
+from immutablecollections import ImmutableDict, ImmutableSet, immutableset
+
+import pytest
 
 print(type(immutableset))
 
@@ -33,6 +35,7 @@ def function_call_overhead_no_arg():
     pass
 
 
+# pylint: disable=unused-argument
 def function_call_overhead_arg(iterable):
     pass
 

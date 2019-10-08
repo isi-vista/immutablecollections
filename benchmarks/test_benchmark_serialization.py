@@ -1,9 +1,10 @@
-import pytest
+# pylint: disable=invalid-name
 import random
 from pickle import dumps
 
-from immutablecollections import immutableset, immutabledict
+from immutablecollections import immutabledict, immutableset
 
+import pytest
 
 empty_tuple = ()
 empty_list = []

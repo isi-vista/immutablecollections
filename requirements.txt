@@ -2,11 +2,13 @@
 typing_extensions  # for Protocol
 
 # extras for development
-black==18.9b0
+black==19.3b0
+pytest==5.2.0
+coverage==4.5.4
+pytest-cov==2.8.0
 pylint==2.3.1
-flake8==3.7.7
+flake8==3.7.8
 mypy==0.701
-pytest==4.4.1
-pytest-cov==2.7.1
+isort==4.3.21
 pytest-benchmark==3.2.2
 twine

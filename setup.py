@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-from setuptools import find_packages
-
 from os.path import abspath, dirname, join
+
+from setuptools import find_packages
 
 _name = 'immutablecollections'
 
