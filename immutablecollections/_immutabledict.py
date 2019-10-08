@@ -2,11 +2,9 @@ from abc import ABCMeta
 from typing import (
     Callable,
     Dict,
-    Generic,
     Iterable,
     Iterator,
     Mapping,
-    MutableMapping,
     Optional,
     Set,
     Tuple,
@@ -155,9 +153,6 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         """
         return immutabledict((key_function(item), item) for item in items)
 
-    def modified_copy_builder(self) -> "ImmutableDict.Builder[KT, VT]":
-        return ImmutableDict.Builder(source=self)
-
     def filter_keys(self, predicate: Callable[[KT], bool]) -> "ImmutableDict[KT, VT]":
         """
         Filters an ImmutableDict by a predicate on its keys.
@@ -188,60 +183,6 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         if self:
             _repr = tuple(self.items())
         return (immutabledict, (_repr,))
-
-    class Builder(Generic[KT2, VT2]):
-        def __init__(self, source: "ImmutableDict[KT2,VT2]" = None) -> None:
-            self._dict: MutableMapping[KT2, VT2] = {}
-            self.source = source
-
-        def put(self: SelfType, key: KT2, val: VT2) -> SelfType:
-            if self.source:
-                # we only lazily copy the contents of source because if no changes are ever made
-                # we can just reuse it
-                # we need the temporary variable because the call to put_all below will
-                # call this put method again and we need self.source to be None to avoid an
-                # infinite loop
-                tmp_source = self.source
-                # Defend against multithreading scenario where another thread has cleared
-                # self.source already. Not that this code is meant to be thread-safe anyway,
-                # but at least you won't get non-deterministic crashes
-                if tmp_source is not None:
-                    self.source = None
-                    self.put_all(tmp_source)
-
-            self._dict[key] = val
-            return self
-
-        def put_all(
-            self: SelfType, data: Union[Mapping[KT2, VT2], Iterable[IT2]]
-        ) -> SelfType:
-            if isinstance(data, Mapping):
-                for (k, v) in data.items():
-                    self.put(k, v)
-            elif isinstance(data, Iterable):
-                # mypy is confused
-                for (k, v) in data:  # type: ignore
-                    self.put(k, v)
-            else:
-                raise TypeError(
-                    "Can only initialize ImmutableDict from another dictionary or "
-                    "a sequence of key-value pairs"
-                )
-            return self
-
-        def __setitem__(self, key: KT2, value: VT2) -> None:
-            self.put(key, value)
-
-        def build(self) -> "ImmutableDict[KT2, VT2]":
-            if self.source:
-                # if any puts were done this will be None. If no puts were done we can return
-                # the ImmutableDict we were based on because we will be identical and immutable
-                # objects can be safely shared
-                return self.source
-            if self._dict:
-                return _RegularDictBackedImmutableDict(self._dict)
-            else:
-                return _EMPTY
 
 
 class _RegularDictBackedImmutableDict(ImmutableDict[KT, VT]):
