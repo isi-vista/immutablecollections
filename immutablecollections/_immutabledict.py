@@ -134,7 +134,7 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         if isinstance(dict_, ImmutableDict):
             return dict_
         else:
-            return ImmutableDict.builder().put_all(dict_).build()  # type:ignore
+            return immutabledict(dict_)
 
     @staticmethod
     def empty() -> "ImmutableDict[KT, VT]":
@@ -142,14 +142,6 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         Deprecated - prefer the ``immutabledict`` module-level factory with no arguments.
         """
         return _EMPTY
-
-    @staticmethod
-    def builder() -> "ImmutableDict.Builder[KT, VT]":
-        """
-        Deprecated - prefer to build a list of tuples and pass them to the ``immutabledict``
-        module-level factory
-        """
-        return ImmutableDict.Builder()
 
     @staticmethod
     def index(
