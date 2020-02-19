@@ -28,12 +28,12 @@ IT2 = Tuple[KT2, VT2]
 
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 
-AllowableSourceType = Union[Iterable[IT], Mapping[KT, VT], "ImmutableDict[KT, VT]"]
+AllowableSourceType = Union[Iterable[Tuple[KT, VT]], Mapping[KT, VT], "ImmutableDict[KT, VT]"]
 InstantiationTypes = (Mapping, Iterable)  # pylint:disable=invalid-name
 
 
 def immutabledict(
-    iterable: Optional[AllowableSourceType] = None, *, forbid_duplicate_keys: bool = False
+    iterable: Optional[AllowableSourceType[TypeVar("KT"), TypeVar("VT")]] = None, *, forbid_duplicate_keys: bool = False
 ) -> "ImmutableDict[KT, VT]":
     """
     Create an immutable dictionary with the given mappings.
