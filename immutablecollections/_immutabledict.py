@@ -1,5 +1,6 @@
 from abc import ABCMeta
 from typing import (
+    Any,
     Callable,
     Dict,
     Generic,
@@ -19,21 +20,23 @@ from immutablecollections.immutablecollection import ImmutableCollection
 
 KT = TypeVar("KT")
 VT = TypeVar("VT")
-IT = Tuple[KT, VT]
 
 # cannot share type variables between outer and inner classes
 KT2 = TypeVar("KT2")
 VT2 = TypeVar("VT2")
-IT2 = Tuple[KT2, VT2]
 
 SelfType = TypeVar("SelfType")  # pylint:disable=invalid-name
 
-AllowableSourceType = Union[Iterable[Tuple[KT, VT]], Mapping[KT, VT], "ImmutableDict[KT, VT]"]
+AllowableSourceType = Union[
+    Iterable[Tuple[KT, VT]], Mapping[KT, VT], "ImmutableDict[KT, VT]"
+]
 InstantiationTypes = (Mapping, Iterable)  # pylint:disable=invalid-name
 
 
 def immutabledict(
-    iterable: Optional[AllowableSourceType[TypeVar("KT"), TypeVar("VT")]] = None, *, forbid_duplicate_keys: bool = False
+    iterable: Optional[AllowableSourceType[Any, Any]] = None,
+    *,
+    forbid_duplicate_keys: bool = False,
 ) -> "ImmutableDict[KT, VT]":
     """
     Create an immutable dictionary with the given mappings.
@@ -221,7 +224,7 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
             return self
 
         def put_all(
-            self: SelfType, data: Union[Mapping[KT2, VT2], Iterable[IT2]]
+            self: SelfType, data: Union[Mapping[KT2, VT2], Iterable[Tuple[KT2, VT2]]]
         ) -> SelfType:
             if isinstance(data, Mapping):
                 for (k, v) in data.items():
