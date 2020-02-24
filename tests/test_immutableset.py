@@ -209,7 +209,16 @@ class TestImmutableSet(TestCase):
         s2 = immutableset(["a", "c"])
         s3 = immutableset(["b", "c"])
         self.assertEqual(s1, s2.union(s3))
+        self.assertEqual(s1, s2.union(s3, check_top_type_matches=str))
         self.assertEqual(s1, s2 | s3)
+        # check union with plain iterable
+        self.assertEqual(s1, s2.union(["b", "c"]))
+
+        with self.assertRaises(TypeError):
+            # right hand provokes type failure
+            s2.union([1, 2, 3], check_top_type_matches=str)
+            # left hand provokes type failure
+            s2.union([1, 2, 3], check_top_type_matches=int)
 
     def test_difference(self):
         self.assertEqual(

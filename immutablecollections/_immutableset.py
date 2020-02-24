@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from itertools import chain, islice
 from typing import (
     AbstractSet,
     Any,
@@ -246,12 +247,28 @@ class ImmutableSet(  # pylint: disable=duplicate-bases
         If check top level types is provided, all elements of both sets must match the specified
         type.
         """
-        return (
-            ImmutableSet.builder(check_top_type_matches)
-            .add_all(self)
-            .add_all(other)
-            .build()
-        )
+        if check_top_type_matches:
+            for (side_name, side) in (("left", self), ("right", other)):
+                items_not_matching = [
+                    x for x in side if not isinstance(x, check_top_type_matches)
+                ]
+                if items_not_matching:
+                    raise TypeError(
+                        f"Items in immutableset union were asked to match "
+                        f"{check_top_type_matches}, but got "
+                        f"{list(islice(items_not_matching, 10))} "
+                        f"on the {side_name}"
+                    )
+            return (
+                ImmutableSet.builder(check_top_type_matches)
+                .add_all(self)
+                .add_all(other)
+                .build()
+            )
+        else:
+            # When we don't need to do check_top_type_matches,
+            # we can use the more efficient factory method.
+            return immutableset(chain(self, other))
 
     # we deliberately tighten the type bounds from our parent
     def __or__(self, other: AbstractSet[T]) -> "ImmutableSet[T]":  # type: ignore
