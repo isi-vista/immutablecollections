@@ -1,3 +1,9 @@
+Immutablecollections 0.10.0 (2020-02-25)
+========================================
+
+No significant changes.
+
+
 Immutablecollections 0.9.0 (2019-10-02)
 =======================================
 
