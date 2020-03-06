@@ -163,6 +163,18 @@ class ImmutableDict(ImmutableCollection[KT], Mapping[KT, VT], metaclass=ABCMeta)
         """
         return immutabledict((key_function(item), item) for item in items)
 
+    def inverse(self) -> "ImmutableDict[VT, KT]":
+        """
+        Get an `ImmutableDict` which is the inverse of this one.
+
+        A key-value pair *(k,v)* will appear in the returned mapping
+        if and only if *(v, k)* is in this mapping.
+
+        If there are duplicate values in this the `ImmutableDict` *invert* is called on,
+        an exception will be raised.
+        """
+        return immutabledict_from_unique_keys((v, k) for (k, v) in self.items())
+
     def modified_copy_builder(self) -> "ImmutableDict.Builder[KT, VT]":
         return ImmutableDict.Builder(source=self)
 

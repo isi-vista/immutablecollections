@@ -8,6 +8,8 @@ from immutablecollections import (
     immutabledict_from_unique_keys,
 )
 
+from pytest import raises
+
 
 class TestImmutableDict(TestCase):
     def test_empty(self):
@@ -160,3 +162,16 @@ class TestImmutableDict(TestCase):
         immutabledict_from_unique_keys(good)
         immutabledict((x for x in good), forbid_duplicate_keys=True)
         immutabledict_from_unique_keys(x for x in good)
+
+    def test_inverse(self):
+        self.assertEqual(
+            immutabledict({"foo": "bar", "bar": "bat"}).inverse(),
+            immutabledict({"bar": "foo", "bat": "bar"}),
+        )
+
+    def test_inverse_non_unique_keys(self):
+        with raises(
+            ValueError,
+            match="forbid_duplicate_keys=True, but some keys occur multiple times in input: .*",
+        ):
+            immutabledict({"foo": "bar", "bat": "bar"}).inverse()
