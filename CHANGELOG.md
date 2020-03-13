@@ -1,3 +1,12 @@
+Immutablecollections 0.11.0 (2020-03-13)
+========================================
+
+New Features
+------------
+
+- - adds an *inverse* method to `ImmutableDict` (`#75 <https://github.com/isi-vista/immutablecollections/issues/75>`_)
+
+
 Immutablecollections 0.10.0 (2020-02-25)
 ========================================
 
