@@ -6,10 +6,9 @@ import platform
 
 # In Python 3.7+, the spec guarantees dicts have an iteration order
 # which matches insertion order
-_PYTHON_VERSION_GUARANTEES_DETERMINISTIC_DICT_ITERATION = platform.python_version_tuple() >= (
-    "3",
-    "7",
-    "0",
+_PYTHON_VERSION_GUARANTEES_DETERMINISTIC_DICT_ITERATION = (
+    platform.python_version_tuple() >= ("3", "7", "0")
+    or platform.python_implementation() == "PyPy"
 )
 
 # we know CPython guarantees deterministic dict iteration order

@@ -1,0 +1,1 @@
+- allow immutable dictionaries to be initialized from regular dicts when running in PyPy
